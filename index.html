@@ -61047,14 +61047,27 @@ function refreshCourseFilterDropdowns() {
     var grade = document.getElementById('grade-select').value;
     var subject = document.getElementById('subject-select').value;
 
+    // --- Auto-hide grade dropdown if class type has only one grade ---
+    var gradeField = document.getElementById('grade-field');
+    var ctData = (SANTAO_COURSE_OPTIONS || {})[classType] || {};
+    var ctGrades = Object.keys(ctData);
+    if (ctGrades.length <= 1) {
+        gradeField.style.display = 'none';
+        if (ctGrades.length === 1) {
+            document.getElementById('grade-select').value = ctGrades[0];
+            grade = ctGrades[0];
+        }
+    } else {
+        gradeField.style.display = 'block';
+    }
+
     // --- Teacher dropdown ---
     var teacherSelect = document.getElementById('teacher-select');
     teacherSelect.innerHTML = '<option value="">-- 全部老师 --</option>';
-    var courses = ((SANTAO_COURSE_OPTIONS || {})[classType] || {})[grade] || {};
-    var subjectCourses = courses[subject] || [];
+    var courses = (ctData[grade] || {})[subject] || [];
     var teachers = {};
-    subjectCourses.forEach(function(c) {
-        var t = c.class_type || '';
+    courses.forEach(function(c) {
+        var t = c.teacher || '';
         if (t) teachers[t] = true;
     });
     Object.keys(teachers).sort().forEach(function(t) {
@@ -61063,6 +61076,14 @@ function refreshCourseFilterDropdowns() {
         opt.textContent = t;
         teacherSelect.appendChild(opt);
     });
+
+    // --- Auto-hide teacher dropdown if no teachers ---
+    var teacherField = document.getElementById('teacher-field');
+    if (Object.keys(teachers).length === 0) {
+        teacherField.style.display = 'none';
+    } else {
+        teacherField.style.display = 'block';
+    }
 
     refreshCourseList();
 }
@@ -61107,9 +61128,9 @@ function createCourseSelectorModal() {
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="margin:0">选择课程</h3><button id="btn-custom" type="button" style="padding:6px 14px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">自定义</button></div>' +
         '<div id="dropdown-section">' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">班型:</label><br><select id="classtype-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
-        '<div style="margin-bottom:10px"><label style="font-weight:600">年级:</label><br><select id="grade-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
+        '<div id="grade-field" style="margin-bottom:10px"><label style="font-weight:600">年级:</label><br><select id="grade-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">科目:</label><br><select id="subject-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
-        '<div style="margin-bottom:10px"><label style="font-weight:600">老师:</label><br><select id="teacher-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"><option value="">-- 全部老师 --</option></select></div>' +
+        '<div id="teacher-field" style="margin-bottom:10px"><label style="font-weight:600">老师:</label><br><select id="teacher-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"><option value="">-- 全部老师 --</option></select></div>' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">选择已有课程:</label><br><select id="course-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '</div>' +
         '<div id="custom-inputs-section" style="display:none;border:1px dashed #ccc;border-radius:8px;padding:12px;margin-bottom:10px;background:#f9f9f9">' +
