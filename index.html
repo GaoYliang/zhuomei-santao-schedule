@@ -61051,14 +61051,22 @@ function refreshCourseFilterDropdowns() {
     var gradeField = document.getElementById('grade-field');
     var gradeSelect = document.getElementById('grade-select');
     var currentGrade = gradeSelect.value;
-    if (ctGrades.length <= 1) {
+    // Check if all grades have the same subjects — if so, grade doesn't matter
+    var allSameSubjects = true;
+    if (ctGrades.length > 1) {
+        var firstSubjs = Object.keys(ctData[ctGrades[0]] || {}).sort().join(',');
+        for (var gi = 1; gi < ctGrades.length; gi++) {
+            var otherSubjs = Object.keys(ctData[ctGrades[gi]] || {}).sort().join(',');
+            if (firstSubjs !== otherSubjs) { allSameSubjects = false; break; }
+        }
+    }
+    if (ctGrades.length <= 1 || allSameSubjects) {
         gradeField.style.display = 'none';
-        if (ctGrades.length === 1) {
+        if (ctGrades.length >= 1) {
             gradeSelect.value = ctGrades[0];
         }
     } else {
         gradeField.style.display = 'block';
-        // If current grade not in this class type, pick first available
         if (ctGrades.indexOf(currentGrade) === -1) {
             gradeSelect.value = ctGrades[0];
         }
