@@ -61047,11 +61047,7 @@ function refreshCourseFilterDropdowns() {
     var ctData = (SANTAO_COURSE_OPTIONS || {})[classType] || {};
     var ctGrades = Object.keys(ctData);
 
-    // --- Grade dropdown: hide if only one grade, also sync grade value ---
-    var gradeField = document.getElementById('grade-field');
-    var gradeSelect = document.getElementById('grade-select');
-    var currentGrade = gradeSelect.value;
-    // Check if all grades have the same subjects — if so, grade doesn't matter
+    // Check if all grades share the same subjects (grade doesn't matter)
     var allSameSubjects = true;
     if (ctGrades.length > 1) {
         var firstSubjs = Object.keys(ctData[ctGrades[0]] || {}).sort().join(',');
@@ -61060,22 +61056,37 @@ function refreshCourseFilterDropdowns() {
             if (firstSubjs !== otherSubjs) { allSameSubjects = false; break; }
         }
     }
-    if (ctGrades.length <= 1 || allSameSubjects) {
+    var gradeMatters = ctGrades.length > 1 && !allSameSubjects;
+
+    // --- Grade dropdown ---
+    var gradeField = document.getElementById('grade-field');
+    var gradeSelect = document.getElementById('grade-select');
+    if (!gradeMatters) {
         gradeField.style.display = 'none';
-        if (ctGrades.length >= 1) {
-            gradeSelect.value = ctGrades[0];
-        }
+        if (ctGrades.length >= 1) gradeSelect.value = ctGrades[0];
     } else {
         gradeField.style.display = 'block';
-        if (ctGrades.indexOf(currentGrade) === -1) {
-            gradeSelect.value = ctGrades[0];
-        }
+        if (ctGrades.indexOf(gradeSelect.value) === -1) gradeSelect.value = ctGrades[0];
     }
     var grade = gradeSelect.value;
 
+    // --- Collect courses: if grade doesn't matter, merge all grades ---
+    var gradeData = {};
+    if (gradeMatters) {
+        gradeData = ctData[grade] || {};
+    } else {
+        // Merge subjects and courses from ALL grades
+        ctGrades.forEach(function(g) {
+            var gData = ctData[g] || {};
+            Object.keys(gData).forEach(function(subj) {
+                if (!gradeData[subj]) gradeData[subj] = [];
+                gradeData[subj] = gradeData[subj].concat(gData[subj]);
+            });
+        });
+    }
+
     // --- Subject dropdown: rebuild with available subjects ---
     var subjectSelect = document.getElementById('subject-select');
-    var gradeData = ctData[grade] || {};
     var availableSubjects = Object.keys(gradeData);
     if (availableSubjects.length > 0) {
         subjectSelect.innerHTML = '';
@@ -61085,7 +61096,6 @@ function refreshCourseFilterDropdowns() {
             opt.textContent = s;
             subjectSelect.appendChild(opt);
         });
-        // Restore previous subject if available, else pick first
         if (availableSubjects.indexOf(subject) !== -1) {
             subjectSelect.value = subject;
         }
@@ -61095,7 +61105,7 @@ function refreshCourseFilterDropdowns() {
     // --- Teacher dropdown ---
     var teacherSelect = document.getElementById('teacher-select');
     teacherSelect.innerHTML = '<option value="">-- 全部老师 --</option>';
-    var courses = (gradeData[subject]) || [];
+    var courses = gradeData[subject] || [];
     var teachers = {};
     courses.forEach(function(c) {
         var t = c.teacher || '';
@@ -61119,7 +61129,30 @@ function refreshCourseList() {
     var subject = document.getElementById('subject-select').value;
     var teacher = document.getElementById('teacher-select').value;
 
-    var allCourses = (((SANTAO_COURSE_OPTIONS || {})[classType] || {})[grade] || {})[subject] || [];
+    // Determine if grade matters for this class type
+    var ctData = (SANTAO_COURSE_OPTIONS || {})[classType] || {};
+    var ctGrades = Object.keys(ctData);
+    var allSameSubjects = true;
+    if (ctGrades.length > 1) {
+        var firstSubjs = Object.keys(ctData[ctGrades[0]] || {}).sort().join(',');
+        for (var gi = 1; gi < ctGrades.length; gi++) {
+            var otherSubjs = Object.keys(ctData[ctGrades[gi]] || {}).sort().join(',');
+            if (firstSubjs !== otherSubjs) { allSameSubjects = false; break; }
+        }
+    }
+    var gradeMatters = ctGrades.length > 1 && !allSameSubjects;
+
+    // Get courses — merge all grades if grade doesn't matter
+    var allCourses = [];
+    if (gradeMatters) {
+        allCourses = (((SANTAO_COURSE_OPTIONS || {})[classType] || {})[grade] || {})[subject] || [];
+    } else {
+        ctGrades.forEach(function(g) {
+            var gc = (((SANTAO_COURSE_OPTIONS || {})[classType] || {})[g] || {})[subject] || [];
+            allCourses = allCourses.concat(gc);
+        });
+    }
+
     var filtered = teacher ? allCourses.filter(function(c) { return c.teacher === teacher; }) : allCourses;
 
     var select = document.getElementById('course-select');
