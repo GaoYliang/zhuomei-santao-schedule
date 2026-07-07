@@ -60981,7 +60981,10 @@ function openCourseSelector(cellId, grade, subject) {
     // --- Populate 班型 dropdown ---
     var classTypeSelect = document.getElementById('classtype-select');
     classTypeSelect.innerHTML = '';
-    var classTypes = Object.keys(SANTAO_COURSE_OPTIONS || {});
+    var classTypes = Object.keys(SANTAO_COURSE_OPTIONS || {}).filter(function(ct) {
+        var ctGrades = Object.keys(SANTAO_COURSE_OPTIONS[ct]);
+        return ctGrades.some(function(g) { return allowedGrades.indexOf(g) !== -1; });
+    });
     classTypes.forEach(function(ct) {
         var opt = document.createElement('option');
         opt.value = ct;
