@@ -61473,13 +61473,13 @@ async function addNewStudent() {
         '<option value="高三">高三</option>' +
         '</select></div>' +
         '<div style="margin-bottom:12px"><label>组合（仅高中）:</label><br><select id="new-student-combo" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ddd;border-radius:4px;">' +
-        '<option value="默认">默认</option>' +
         '<option value="物化生">物化生</option>' +
         '<option value="物化地">物化地</option>' +
         '<option value="物化政">物化政</option>' +
         '<option value="政史地">政史地</option>' +
         '<option value="政史生">政史生</option>' +
-        '</select></div>' +
+        '<option value="自定义">自定义</option>' +
+        '</select><input id="new-student-combo-custom" type="text" placeholder="输入自定义组合" style="width:100%;padding:8px;margin-top:8px;border:1px solid #ddd;border-radius:4px;display:none;"></div>' +
         '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">' +
         '<button id="btn-cancel-add" style="padding:8px 16px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;">取消</button>' +
         '<button id="btn-save-add" style="padding:8px 16px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;cursor:pointer;">保存</button>' +
@@ -61489,11 +61489,23 @@ async function addNewStudent() {
     
     var gradeSelect = modal.querySelector('#new-student-grade');
     var comboSelect = modal.querySelector('#new-student-combo');
+    var customInput = modal.querySelector('#new-student-combo-custom');
     gradeSelect.addEventListener('change', function() {
         var g = this.value;
         var isJunior = (g === '初一' || g === '初二' || g === '初三');
         comboSelect.disabled = isJunior;
-        if (isJunior) comboSelect.value = '默认';
+        customInput.style.display = 'none';
+        if (isJunior) {
+            comboSelect.value = '物化生';
+        }
+    });
+    comboSelect.addEventListener('change', function() {
+        if (this.value === '自定义') {
+            customInput.style.display = 'block';
+            customInput.focus();
+        } else {
+            customInput.style.display = 'none';
+        }
     });
     
     modal.querySelector('#btn-cancel-add').addEventListener('click', function() {
@@ -61502,7 +61514,9 @@ async function addNewStudent() {
     modal.querySelector('#btn-save-add').addEventListener('click', async function() {
         var name = modal.querySelector('#new-student-name').value.trim();
         var grade = modal.querySelector('#new-student-grade').value;
-        var combo = modal.querySelector('#new-student-combo').value;
+        var comboVal = modal.querySelector('#new-student-combo').value;
+        var customVal = modal.querySelector('#new-student-combo-custom').value.trim();
+        var combo = (comboVal === '自定义') ? (customVal || '物化生') : comboVal;
         
         if (!name) { alert('请输入姓名'); return; }
         if (!grade) { alert('请选择年级'); return; }
