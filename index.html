@@ -61104,16 +61104,18 @@ function createCourseSelectorModal() {
     modal.id = 'course-selector-modal';
     modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center;';
     modal.innerHTML = '<div style="background:#fff;padding:24px;border-radius:12px;max-width:520px;width:92%;max-height:85vh;overflow-y:auto;">' +
-        '<h3 style="margin-bottom:16px">选择课程</h3>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="margin:0">选择课程</h3><button id="btn-custom" type="button" style="padding:6px 14px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">自定义</button></div>' +
+        '<div id="dropdown-section">' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">班型:</label><br><select id="classtype-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">年级:</label><br><select id="grade-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">科目:</label><br><select id="subject-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">老师:</label><br><select id="teacher-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"><option value="">-- 全部老师 --</option></select></div>' +
-        '<div style="margin-bottom:10px;display:flex;align-items:center;gap:8px"><label style="font-weight:600;white-space:nowrap">选择已有课程:</label><select id="course-select" style="flex:1;padding:8px;border:1px solid #ccc;border-radius:4px"></select><button id="btn-custom" type="button" style="padding:8px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;white-space:nowrap;font-size:13px">自定义</button></div>' +
+        '<div style="margin-bottom:10px"><label style="font-weight:600">选择已有课程:</label><br><select id="course-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
+        '</div>' +
         '<div id="custom-inputs-section" style="display:none;border:1px dashed #ccc;border-radius:8px;padding:12px;margin-bottom:10px;background:#f9f9f9">' +
-        '<div style="margin-bottom:10px"><label style="font-weight:600">自定义课程名称:</label><br><input id="custom-chapter" type="text" placeholder="课程名称" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box"></div>' +
-        '<div style="margin-bottom:10px"><label style="font-weight:600">自定义教师:</label><br><input id="custom-teacher" type="text" placeholder="教师姓名" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box"></div>' +
-        '<div style="margin-bottom:10px"><label style="font-weight:600">自定义班型:</label><br><input id="custom-class-type" type="text" placeholder="班型（如：实验班、普通班）" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box"></div>' +
+        '<div style="margin-bottom:10px"><label style="font-weight:600">课程名称:</label><br><input id="custom-chapter" type="text" placeholder="课程名称" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box"></div>' +
+        '<div style="margin-bottom:10px"><label style="font-weight:600">教师:</label><br><input id="custom-teacher" type="text" placeholder="教师姓名" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box"></div>' +
+        '<div style="margin-bottom:10px"><label style="font-weight:600">班型:</label><br><input id="custom-class-type" type="text" placeholder="班型（如：实验班、普通班）" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box"></div>' +
         '</div>' +
         '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">' +
         '<button id="btn-clear" style="padding:8px 16px;background:#c0392b;color:#fff;border:none;border-radius:4px;cursor:pointer;">清除</button>' +
@@ -61132,12 +61134,19 @@ function createCourseSelectorModal() {
     });
     modal.querySelector('#btn-custom').addEventListener('click', function(e) {
         e.preventDefault();
-        var section = document.getElementById('custom-inputs-section');
-        if (section.style.display === 'none') {
-            section.style.display = 'block';
-            document.getElementById('course-select').value = '';
+        var customSection = document.getElementById('custom-inputs-section');
+        var dropdownSection = document.getElementById('dropdown-section');
+        var btn = document.getElementById('btn-custom');
+        if (customSection.style.display === 'none') {
+            customSection.style.display = 'block';
+            dropdownSection.style.display = 'none';
+            btn.textContent = '选择课程';
+            btn.style.background = '#1a5fb4';
         } else {
-            section.style.display = 'none';
+            customSection.style.display = 'none';
+            dropdownSection.style.display = 'block';
+            btn.textContent = '自定义';
+            btn.style.background = '#6c757d';
         }
     });
     modal.querySelector('#btn-save').addEventListener('click', function(e) {
