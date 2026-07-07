@@ -61307,8 +61307,20 @@ function refreshView() {
     document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
     var panelId = 'panel-' + currentPhase + '-' + currentGrade + '-' + currentCombo;
     var panel = document.getElementById(panelId);
+    if (!panel) {
+        // 回退：查找同年级同阶段的第一个面板
+        var prefix = 'panel-' + currentPhase + '-' + currentGrade + '-';
+        var allPanels = document.querySelectorAll('.tab-panel');
+        for (var i = 0; i < allPanels.length; i++) {
+            if (allPanels[i].id.indexOf(prefix) === 0) {
+                panel = allPanels[i];
+                currentCombo = panel.id.replace(prefix, '');
+                break;
+            }
+        }
+    }
     if (panel) panel.classList.add('active');
-    updateProgress(panelId);
+    updateProgress(panel ? panel.id : panelId);
 }
 function syncViewToCloud() {
     (async function() {
@@ -61380,6 +61392,25 @@ async function switchStudent(studentId) {
     if (student && student.grade) {
         currentGrade = student.grade;
         currentCombo = student.combo || '默认';
+        
+        // 检查面板是否存在，不存在则回退
+        var testPanelId = 'panel-' + currentPhase + '-' + currentGrade + '-' + currentCombo;
+        if (!document.getElementById(testPanelId)) {
+            var isJr = (currentGrade === '初一' || currentGrade === '初二' || currentGrade === '初三');
+            if (isJr) {
+                currentCombo = '默认';
+            } else {
+                // 尝试找到该年级第一个存在的面板
+                var fallbackCombos = ['物化生', '物化地', '物化政', '政史地', '政史生'];
+                for (var fi = 0; fi < fallbackCombos.length; fi++) {
+                    var fbId = 'panel-' + currentPhase + '-' + currentGrade + '-' + fallbackCombos[fi];
+                    if (document.getElementById(fbId)) {
+                        currentCombo = fallbackCombos[fi];
+                        break;
+                    }
+                }
+            }
+        }
         
         // 更新页面UI - 选中对应年级按钮
         document.querySelectorAll('.nav-btn[id^="grade-"]').forEach(function(b) { b.classList.remove('active'); });
@@ -61542,7 +61573,8 @@ async function addNewStudent() {
         var grade = modal.querySelector('#new-student-grade').value;
         var comboVal = modal.querySelector('#new-student-combo').value;
         var customVal = modal.querySelector('#new-student-combo-custom').value.trim();
-        var combo = (comboVal === '自定义') ? (customVal || '物化生') : comboVal;
+        var isJunior = (grade === '初一' || grade === '初二' || grade === '初三');
+        var combo = isJunior ? '默认' : ((comboVal === '自定义') ? (customVal || '物化生') : comboVal);
         
         if (!name) { alert('请输入姓名'); return; }
         if (!grade) { alert('请选择年级'); return; }
