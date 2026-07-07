@@ -219,10 +219,7 @@ body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; backgro
 <div class="toolbar">
     <div class="toolbar-left">💡 选择年级 → 组合 | 点击单元格查看课程详情</div>
     <div class="toolbar-right">
-        <button class="tool-btn" onclick="forceSyncNow()" id="sync-btn" title="点击强制同步">☁️ 自动同步中</button>
-        <button class="tool-btn" onclick="importExcel()">📊 导入Excel</button>
-        <button class="tool-btn" onclick="exportData()">📥 导出</button>
-        <button class="tool-btn" onclick="importData()">📤 导入</button>
+        <button class="tool-btn" onclick="exportCompletionExcel()" title="导出当前学生的课程完成情况">📊 导出Excel</button>
         <button class="tool-btn danger" onclick="clearAll()">🗑️ 清空</button>
     </div>
 </div>
@@ -60365,11 +60362,36 @@ var students = {};
 var allStudents = [];
 var userGroups = {};
 var allGroups = [];
+var originalCellColors = {};
 
 function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
 
+function saveOriginalCellColors() {
+    document.querySelectorAll('.subject-cell').forEach(function(cell) {
+        var cellId = cell.id.replace('cell-', '');
+        originalCellColors[cellId] = cell.style.background || '';
+    });
+}
+
+function restoreCellColor(cellId) {
+    var cell = document.getElementById('cell-' + cellId);
+    if (cell) {
+        var orig = originalCellColors[cellId] || '';
+        cell.style.background = orig || '#f5f5f5';
+    }
+}
+
+function restoreAllCellColors() {
+    document.querySelectorAll('.subject-cell').forEach(function(cell) {
+        var cellId = cell.id.replace('cell-', '');
+        var orig = originalCellColors[cellId] || '';
+        cell.style.background = orig || '#f5f5f5';
+    });
+}
+
 // ===== 页面加载 =====
 window.addEventListener('DOMContentLoaded', function() {
+    saveOriginalCellColors();
     // 先显示密码登录界面
     showPasswordLogin();
 });
@@ -60741,6 +60763,9 @@ async function loadAllData() {
         // 确保列数足够显示所有数据
         ensureColumnsForData();
         
+        // 恢复所有单元格原始背景色
+        restoreAllCellColors();
+        
         // 统一更新所有 UI
         for (var cellId in cellSelections) {
             updateCellDisplayFromSelection(cellId, cellSelections[cellId]);
@@ -61016,9 +61041,8 @@ function clearCourseSelection() {
     var cd = document.getElementById('content-' + currentEditCellId);
     if (cd) cd.innerHTML = '<div class="subject-name"></div>';
     
-    // 重置单元格背景色
-    var cell = document.getElementById('cell-' + currentEditCellId);
-    if (cell) cell.style.background = '#f5f5f5';
+    // 重置单元格背景色为原始颜色
+    restoreCellColor(currentEditCellId);
     
     // 删除数据库记录
     (async function() {
@@ -61383,6 +61407,7 @@ async function switchStudent(studentId) {
     document.querySelectorAll('.cell-content').forEach(function(cd) {
         cd.innerHTML = '<div class="subject-name"></div>';
     });
+    restoreAllCellColors();
     document.querySelectorAll('.check-btn').forEach(function(b) {
         b.classList.remove('checked');
     });
@@ -61782,8 +61807,113 @@ function updateProgress(id) {
     var text = document.getElementById('progress-' + id);
     if (text) text.textContent = pct + '% 已完成 (' + completed + '/' + total + ')';
 }
-function exportData() { /* 导出数据 */ }
-function clearAll() { /* 清空数据 */ }
+function exportCompletionExcel() {
+    if (!currentStudentId) { showToast('❌ 请先选择学生'); return; }
+    
+    // 收集当前面板的已完成课程数据
+    var rows = [];
+    rows.push(['学科', '章节', '老师', '日期', '时段', '状态']);
+    
+    var slotNames = { 'S0': '8:00-9:30', 'S1': '9:45-11:20', 'S2': '14:00-15:30', 'S3': '15:45-17:20' };
+    var skipWords = ['休息', '午饭', '午休', '课间'];
+    
+    var pid = 'panel-' + currentPhase + '-' + currentGrade + '-' + currentCombo;
+    var panel = document.getElementById(pid);
+    if (!panel) { showToast('❌ 未找到课表面板'); return; }
+    
+    panel.querySelectorAll('.subject-cell').forEach(function(cell) {
+        var cellId = cell.id.replace('cell-', '');
+        var contentDiv = cell.querySelector('.cell-content');
+        if (!contentDiv) return;
+        
+        var subjectEl = contentDiv.querySelector('.subject-name');
+        var subject = subjectEl ? subjectEl.textContent.trim() : '';
+        
+        // 跳过空单元格和休息时段
+        if (!subject) return;
+        var isSkip = skipWords.some(function(w) { return subject.indexOf(w) !== -1; });
+        if (isSkip) return;
+        
+        var chapterEls = contentDiv.querySelectorAll('.chapter-name');
+        var chapter = chapterEls.length > 0 ? chapterEls[0].textContent.trim() : '';
+        var teacher = chapterEls.length > 1 ? chapterEls[1].textContent.replace('👤 ', '').trim() : '';
+        
+        // 解析日期和时段
+        var parts = cellId.split('-');
+        var dayStr = '', slotStr = '';
+        for (var i = 0; i < parts.length; i++) {
+            if (parts[i].charAt(0) === 'D') dayStr = '第' + parts[i].substring(1) + '天';
+            if (parts[i].charAt(0) === 'S') slotStr = slotNames[parts[i]] || parts[i];
+        }
+        
+        var isDone = cell.classList.contains('completed');
+        rows.push([subject, chapter, teacher, dayStr, slotStr, isDone ? '已完成' : '未完成']);
+    });
+    
+    if (rows.length <= 1) { showToast('⚠️ 当前面板没有课程数据'); return; }
+    
+    // 统计信息
+    var completed = 0, total = rows.length - 1;
+    rows.forEach(function(r, i) { if (i > 0 && r[5] === '已完成') completed++; });
+    rows.push([]);
+    rows.push(['统计', '已完成: ' + completed, '未完成: ' + (total - completed), '总计: ' + total, '完成率: ' + Math.round(completed / total * 100) + '%']);
+    
+    // 使用 SheetJS 导出
+    var ws = XLSX.utils.aoa_to_sheet(rows);
+    
+    // 设置列宽
+    ws['!cols'] = [
+        { wch: 10 }, { wch: 30 }, { wch: 12 }, { wch: 10 }, { wch: 14 }, { wch: 8 }
+    ];
+    
+    var wb = XLSX.utils.book_new();
+    var sheetName = currentStudentName + ' ' + currentGrade + ' ' + currentCombo;
+    XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
+    
+    var fileName = '课程完成情况_' + currentStudentName + '_' + currentGrade + '_' + currentCombo + '.xlsx';
+    XLSX.writeFile(wb, fileName);
+    showToast('✅ 已导出: ' + fileName);
+}
+
+function clearAll() {
+    if (!currentStudentId) { showToast('❌ 请先选择学生'); return; }
+    
+    if (!confirm('确定清空「' + currentStudentName + '」的所有课表数据？\n此操作将清除所有单元格的内容和完成标记，不可恢复！')) return;
+    
+    (async function() {
+        try {
+            // 1. 删除数据库中该学生的所有课程数据
+            await supabaseClient.from('schedule_cell_courses_v2').delete().eq('student_id', currentStudentId);
+            // 2. 删除该学生的所有完成标记
+            await supabaseClient.from('schedule_marks_v2').delete().eq('student_id', currentStudentId);
+            
+            // 3. 清空内存数据
+            cellSelections = {};
+            
+            // 4. 清空页面显示并恢复原始颜色
+            document.querySelectorAll('.cell-content').forEach(function(cd) {
+                cd.innerHTML = '<div class="subject-name"></div>';
+            });
+            restoreAllCellColors();
+            document.querySelectorAll('.check-btn').forEach(function(b) {
+                b.classList.remove('checked');
+            });
+            document.querySelectorAll('.subject-cell').forEach(function(c) {
+                c.classList.remove('completed');
+            });
+            
+            // 5. 更新进度
+            var pid = 'panel-' + currentPhase + '-' + currentGrade + '-' + currentCombo;
+            updateProgress(pid);
+            
+            showToast('✅ 已清空「' + currentStudentName + '」的所有课表数据');
+            logOperation(currentGroupId, '清空数据', currentStudentName + ' 清空所有课表');
+        } catch (e) {
+            console.error('清空失败:', e);
+            showToast('❌ 清空失败: ' + e.message);
+        }
+    })();
+}
 function showToast(msg) { var t = document.getElementById('toast'); if (t) { t.textContent = msg; t.style.opacity = 1; setTimeout(function() { t.style.opacity = 0; }, 2000); } }
 
 
