@@ -61042,29 +61042,52 @@ function openCourseSelector(cellId, grade, subject) {
 }
 
 function refreshCourseFilterDropdowns() {
-    // Called when classType / grade / subject changes — rebuild teacher + course lists
     var classType = document.getElementById('classtype-select').value;
-    var grade = document.getElementById('grade-select').value;
     var subject = document.getElementById('subject-select').value;
-
-    // --- Auto-hide grade dropdown if class type has only one grade ---
-    var gradeField = document.getElementById('grade-field');
     var ctData = (SANTAO_COURSE_OPTIONS || {})[classType] || {};
     var ctGrades = Object.keys(ctData);
+
+    // --- Grade dropdown: hide if only one grade, also sync grade value ---
+    var gradeField = document.getElementById('grade-field');
+    var gradeSelect = document.getElementById('grade-select');
+    var currentGrade = gradeSelect.value;
     if (ctGrades.length <= 1) {
         gradeField.style.display = 'none';
         if (ctGrades.length === 1) {
-            document.getElementById('grade-select').value = ctGrades[0];
-            grade = ctGrades[0];
+            gradeSelect.value = ctGrades[0];
         }
     } else {
         gradeField.style.display = 'block';
+        // If current grade not in this class type, pick first available
+        if (ctGrades.indexOf(currentGrade) === -1) {
+            gradeSelect.value = ctGrades[0];
+        }
     }
+    var grade = gradeSelect.value;
+
+    // --- Subject dropdown: rebuild with available subjects ---
+    var subjectSelect = document.getElementById('subject-select');
+    var gradeData = ctData[grade] || {};
+    var availableSubjects = Object.keys(gradeData);
+    if (availableSubjects.length > 0) {
+        subjectSelect.innerHTML = '';
+        availableSubjects.sort().forEach(function(s) {
+            var opt = document.createElement('option');
+            opt.value = s;
+            opt.textContent = s;
+            subjectSelect.appendChild(opt);
+        });
+        // Restore previous subject if available, else pick first
+        if (availableSubjects.indexOf(subject) !== -1) {
+            subjectSelect.value = subject;
+        }
+    }
+    subject = subjectSelect.value;
 
     // --- Teacher dropdown ---
     var teacherSelect = document.getElementById('teacher-select');
     teacherSelect.innerHTML = '<option value="">-- 全部老师 --</option>';
-    var courses = (ctData[grade] || {})[subject] || [];
+    var courses = (gradeData[subject]) || [];
     var teachers = {};
     courses.forEach(function(c) {
         var t = c.teacher || '';
@@ -61076,28 +61099,20 @@ function refreshCourseFilterDropdowns() {
         opt.textContent = t;
         teacherSelect.appendChild(opt);
     });
-
-    // --- Auto-hide teacher dropdown if no teachers ---
     var teacherField = document.getElementById('teacher-field');
-    if (Object.keys(teachers).length === 0) {
-        teacherField.style.display = 'none';
-    } else {
-        teacherField.style.display = 'block';
-    }
+    teacherField.style.display = Object.keys(teachers).length === 0 ? 'none' : 'block';
 
     refreshCourseList();
 }
 
 function refreshCourseList() {
-    // Called when any filter changes — rebuild the course <select>
     var classType = document.getElementById('classtype-select').value;
     var grade = document.getElementById('grade-select').value;
     var subject = document.getElementById('subject-select').value;
     var teacher = document.getElementById('teacher-select').value;
 
     var allCourses = (((SANTAO_COURSE_OPTIONS || {})[classType] || {})[grade] || {})[subject] || [];
-    // Filter by teacher if selected
-    var filtered = teacher ? allCourses.filter(function(c) { return c.class_type === teacher; }) : allCourses;
+    var filtered = teacher ? allCourses.filter(function(c) { return c.teacher === teacher; }) : allCourses;
 
     var select = document.getElementById('course-select');
     select.innerHTML = '<option value="">-- 请选择课程 --</option>';
@@ -61106,12 +61121,10 @@ function refreshCourseList() {
         option.value = idx;
         option.textContent = opt.lesson + ' | ' + opt.chapter;
         option.setAttribute('data-santao', '1');
-        // Store full course data as JSON for retrieval
         option.setAttribute('data-course', JSON.stringify(opt));
         select.appendChild(option);
     });
 
-    // Try to restore previous selection
     var existing = cellSelections[currentEditCellId];
     if (existing && existing.option_id) {
         select.value = existing.option_id;
