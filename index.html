@@ -48,35 +48,35 @@ body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; backgro
 .schedule-table th .date-label { font-size: 9px; opacity: 0.75; }
 
 /* 学科颜色（背景+文字） */
-.subject-cell[data-subject="数学"] { background: #c8dcff !important; }
-.subject-cell[data-subject="数学"] .subject-name { color: #1a5fb4; }
+.subject-cell[data-subject="数学"] { background: #a3c4f3 !important; }
+.subject-cell[data-subject="数学"] .subject-name { color: #0d47a1; }
 
-.subject-cell[data-subject="物理"] { background: #ffc8c8 !important; }
+.subject-cell[data-subject="物理"] { background: #f5a3a3 !important; }
 .subject-cell[data-subject="物理"] .subject-name { color: #b71c1c; }
 
-.subject-cell[data-subject="化学"] { background: #c2f0c2 !important; }
-.subject-cell[data-subject="化学"] .subject-name { color: #1b6e2e; }
+.subject-cell[data-subject="化学"] { background: #8fd98f !important; }
+.subject-cell[data-subject="化学"] .subject-name { color: #1b5e20; }
 
-.subject-cell[data-subject="生物"] { background: #ffdcb8 !important; }
-.subject-cell[data-subject="生物"] .subject-name { color: #bf4600; }
+.subject-cell[data-subject="生物"] { background: #f5c088 !important; }
+.subject-cell[data-subject="生物"] .subject-name { color: #bf360c; }
 
-.subject-cell[data-subject="语文"] { background: #fff0b8 !important; }
-.subject-cell[data-subject="语文"] .subject-name { color: #b87800; }
+.subject-cell[data-subject="语文"] { background: #f0e068 !important; }
+.subject-cell[data-subject="语文"] .subject-name { color: #7c5e00; }
 
-.subject-cell[data-subject="英语"] { background: #dcc0f0 !important; }
-.subject-cell[data-subject="英语"] .subject-name { color: #5c17a0; }
+.subject-cell[data-subject="英语"] { background: #c49bd4 !important; }
+.subject-cell[data-subject="英语"] .subject-name { color: #4a148c; }
 
-.subject-cell[data-subject="政治"] { background: #ffc8da !important; }
-.subject-cell[data-subject="政治"] .subject-name { color: #a0144e; }
+.subject-cell[data-subject="政治"] { background: #f09dba !important; }
+.subject-cell[data-subject="政治"] .subject-name { color: #880e4f; }
 
-.subject-cell[data-subject="历史"] { background: #b8e8e0 !important; }
-.subject-cell[data-subject="历史"] .subject-name { color: #006050; }
+.subject-cell[data-subject="历史"] { background: #80cbc4 !important; }
+.subject-cell[data-subject="历史"] .subject-name { color: #004d40; }
 
-.subject-cell[data-subject="地理"] { background: #c8c8f0 !important; }
-.subject-cell[data-subject="地理"] .subject-name { color: #283593; }
+.subject-cell[data-subject="地理"] { background: #9fa8da !important; }
+.subject-cell[data-subject="地理"] .subject-name { color: #1a237e; }
 
-.subject-cell[data-subject="公休"] { background: #ececec !important; }
-.subject-cell[data-subject="公休"] .subject-name { color: #999999; }
+.subject-cell[data-subject="公休"] { background: #d0d0d0 !important; }
+.subject-cell[data-subject="公休"] .subject-name { color: #616161; }
 .schedule-table td { padding: 2px 1px; text-align: center; border-right: 1px solid #eaeef3; border-bottom: 1px solid #eaeef3; vertical-align: middle; }
 .schedule-table td:first-child { background: #f8fafc; font-weight: 600; color: #555; font-size: 13px; }
 
@@ -60983,16 +60983,16 @@ function ensureColumnsForData() {
 
 // 学科颜色映射
 var subjectColors = {
-    '数学': '#c8dcff',
-    '物理': '#ffc8c8',
-    '化学': '#c2f0c2',
-    '生物': '#ffdcb8',
-    '语文': '#fff0b8',
-    '英语': '#dcc0f0',
-    '政治': '#ffc8da',
-    '历史': '#b8e8e0',
-    '地理': '#c8c8f0',
-    '公休': '#ececec'
+    '数学': '#a3c4f3',
+    '物理': '#f5a3a3',
+    '化学': '#8fd98f',
+    '生物': '#f5c088',
+    '语文': '#f0e068',
+    '英语': '#c49bd4',
+    '政治': '#f09dba',
+    '历史': '#80cbc4',
+    '地理': '#9fa8da',
+    '公休': '#d0d0d0'
 };
 
 function updateCellDisplayFromSelection(cellId, selection) {
@@ -62728,18 +62728,18 @@ async function addNewStudent() {
     var modal = document.createElement('div');
     modal.id = 'add-student-modal';
     modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1002;display:flex;align-items:center;justify-content:center;';
+    var juniorGrades = ['初一', '初二', '初三'];
+    var seniorGrades = ['高一', '高二', '高三'];
+    var allowedGrades = currentGroupLevel === '初中' ? juniorGrades : (currentGroupLevel === '高中' ? seniorGrades : juniorGrades.concat(seniorGrades));
+    var gradeOptionsHTML = '<option value="">-- 请选择 --</option>';
+    for (var _gi = 0; _gi < allowedGrades.length; _gi++) {
+        gradeOptionsHTML += '<option value="' + allowedGrades[_gi] + '">' + allowedGrades[_gi] + '</option>';
+    }
     modal.innerHTML = '<div style="background:#fff;padding:24px;border-radius:12px;max-width:400px;width:90%;">' +
         '<h3 style="margin-bottom:16px">添加学生</h3>' +
         '<div style="margin-bottom:12px"><label>姓名:</label><br><input id="new-student-name" type="text" placeholder="学生姓名" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ddd;border-radius:4px;"></div>' +
         '<div style="margin-bottom:12px"><label>年级:</label><br><select id="new-student-grade" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ddd;border-radius:4px;">' +
-        '<option value="">-- 请选择 --</option>' +
-        '<option value="初一">初一</option>' +
-        '<option value="初二">初二</option>' +
-        '<option value="初三">初三</option>' +
-        '<option value="高一">高一</option>' +
-        '<option value="高二">高二</option>' +
-        '<option value="高三">高三</option>' +
-        '</select></div>' +
+        gradeOptionsHTML + '</select></div>' +
         '<div style="margin-bottom:12px"><label>组合（仅高中）:</label><br><select id="new-student-combo" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ddd;border-radius:4px;">' +
         '<option value="物化生">物化生</option>' +
         '<option value="物化地">物化地</option>' +
@@ -62767,6 +62767,7 @@ async function addNewStudent() {
             comboSelect.value = '物化生';
         }
     });
+        if (currentGroupLevel === '初中') { comboSelect.disabled = true; comboSelect.parentElement.style.opacity = '0.5'; }
     comboSelect.addEventListener('change', function() {
         if (this.value === '自定义') {
             customInput.style.display = 'block';
