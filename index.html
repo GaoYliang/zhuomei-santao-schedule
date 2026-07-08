@@ -48,29 +48,35 @@ body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; backgro
 .schedule-table th .date-label { font-size: 9px; opacity: 0.75; }
 
 /* 学科颜色（背景+文字） */
-.subject-cell[data-subject="数学"] { background: #e3f0ff !important; }
+.subject-cell[data-subject="数学"] { background: #c8dcff !important; }
 .subject-cell[data-subject="数学"] .subject-name { color: #1a5fb4; }
 
-.subject-cell[data-subject="物理"] { background: #ffe8e8 !important; }
-.subject-cell[data-subject="物理"] .subject-name { color: #d63031; }
+.subject-cell[data-subject="物理"] { background: #ffc8c8 !important; }
+.subject-cell[data-subject="物理"] .subject-name { color: #b71c1c; }
 
-.subject-cell[data-subject="化学"] { background: #e8fff5 !important; }
-.subject-cell[data-subject="化学"] .subject-name { color: #00b894; }
+.subject-cell[data-subject="化学"] { background: #c2f0c2 !important; }
+.subject-cell[data-subject="化学"] .subject-name { color: #1b6e2e; }
 
-.subject-cell[data-subject="生物"] { background: #fff0e6 !important; }
-.subject-cell[data-subject="生物"] .subject-name { color: #e17055; }
+.subject-cell[data-subject="生物"] { background: #ffdcb8 !important; }
+.subject-cell[data-subject="生物"] .subject-name { color: #bf4600; }
 
-.subject-cell[data-subject="地理"] { background: #edeaff !important; }
-.subject-cell[data-subject="地理"] .subject-name { color: #6c5ce7; }
+.subject-cell[data-subject="语文"] { background: #fff0b8 !important; }
+.subject-cell[data-subject="语文"] .subject-name { color: #b87800; }
 
-.subject-cell[data-subject="历史"] { background: #f0edff !important; }
-.subject-cell[data-subject="历史"] .subject-name { color: #7b68ee; }
+.subject-cell[data-subject="英语"] { background: #dcc0f0 !important; }
+.subject-cell[data-subject="英语"] .subject-name { color: #5c17a0; }
 
-.subject-cell[data-subject="政治"] { background: #ffe8f0 !important; }
-.subject-cell[data-subject="政治"] .subject-name { color: #e84393; }
+.subject-cell[data-subject="政治"] { background: #ffc8da !important; }
+.subject-cell[data-subject="政治"] .subject-name { color: #a0144e; }
 
-.subject-cell[data-subject="公休"] { background: #f0f0f0 !important; }
-.subject-cell[data-subject="公休"] .subject-name { color: #b2bec3; }
+.subject-cell[data-subject="历史"] { background: #b8e8e0 !important; }
+.subject-cell[data-subject="历史"] .subject-name { color: #006050; }
+
+.subject-cell[data-subject="地理"] { background: #c8c8f0 !important; }
+.subject-cell[data-subject="地理"] .subject-name { color: #283593; }
+
+.subject-cell[data-subject="公休"] { background: #ececec !important; }
+.subject-cell[data-subject="公休"] .subject-name { color: #999999; }
 .schedule-table td { padding: 2px 1px; text-align: center; border-right: 1px solid #eaeef3; border-bottom: 1px solid #eaeef3; vertical-align: middle; }
 .schedule-table td:first-child { background: #f8fafc; font-weight: 600; color: #555; font-size: 13px; }
 
@@ -60977,16 +60983,16 @@ function ensureColumnsForData() {
 
 // 学科颜色映射
 var subjectColors = {
-    '数学': '#e3f0ff',
-    '物理': '#ffe8e8',
-    '化学': '#e8fff5',
-    '生物': '#f0e8f4',
-    '语文': '#fff8e8',
-    '英语': '#e8f0ff',
-    '政治': '#ffe8f0',
-    '历史': '#f0f8e8',
-    '地理': '#e8f8f0',
-    '公休': '#f0f0f0'
+    '数学': '#c8dcff',
+    '物理': '#ffc8c8',
+    '化学': '#c2f0c2',
+    '生物': '#ffdcb8',
+    '语文': '#fff0b8',
+    '英语': '#dcc0f0',
+    '政治': '#ffc8da',
+    '历史': '#b8e8e0',
+    '地理': '#c8c8f0',
+    '公休': '#ececec'
 };
 
 function updateCellDisplayFromSelection(cellId, selection) {
