@@ -61081,6 +61081,14 @@ function openCourseSelector(cellId, grade, subject) {
         if (ct === defaultClassType) opt.selected = true;
         classTypeSelect.appendChild(opt);
     });
+    if (classTypes.length === 0 && _activeDataSource === 'imported') {
+        var emptyOpt = document.createElement('option');
+        emptyOpt.value = '';
+        emptyOpt.textContent = '（暂无导入数据，请点击 导入文件 导入）';
+        emptyOpt.disabled = true;
+        emptyOpt.selected = true;
+        classTypeSelect.appendChild(emptyOpt);
+    }
 
     // --- Populate 年级 dropdown ---
     var gradeSelect = document.getElementById('grade-select');
@@ -61093,18 +61101,7 @@ function openCourseSelector(cellId, grade, subject) {
         gradeSelect.appendChild(opt);
     });
 
-    // --- Populate 科目 dropdown ---
-    var subjectSelect = document.getElementById('subject-select');
-    var allSubjects = ['语文', '数学', '英语', '物理', '化学', '生物', '政治', '历史', '地理', '公休'];
-    subjectSelect.innerHTML = '';
-    allSubjects.forEach(function(s) {
-        var opt = document.createElement('option');
-        opt.value = s;
-        opt.textContent = s;
-        if (s === subject) opt.selected = true;
-        subjectSelect.appendChild(opt);
-    });
-
+    // --- 科目下拉框由 refreshCourseFilterDropdowns 从实际数据动态生成 ---
     // Wire up cascading change handlers
     classTypeSelect.onchange = function() { refreshCourseFilterDropdowns(); };
     gradeSelect.onchange = function() { refreshCourseFilterDropdowns(); };
@@ -61213,8 +61210,8 @@ function refreshCourseFilterDropdowns() {
     // Rebuild subject dropdown
     var subjectSelect = document.getElementById('subject-select');
     var availableSubjects = Object.keys(gradeData);
+    var frag = document.createDocumentFragment();
     if (availableSubjects.length > 0) {
-        var frag = document.createDocumentFragment();
         availableSubjects.sort();
         for (var i = 0; i < availableSubjects.length; i++) {
             var opt = document.createElement('option');
@@ -61222,11 +61219,17 @@ function refreshCourseFilterDropdowns() {
             opt.textContent = availableSubjects[i];
             frag.appendChild(opt);
         }
-        subjectSelect.innerHTML = '';
-        subjectSelect.appendChild(frag);
-        if (availableSubjects.indexOf(prevSubject) !== -1) {
-            subjectSelect.value = prevSubject;
-        }
+    } else {
+        var opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = _activeDataSource === 'imported' ? '（暂无导入科目）' : '（无科目数据）';
+        opt.disabled = true;
+        frag.appendChild(opt);
+    }
+    subjectSelect.innerHTML = '';
+    subjectSelect.appendChild(frag);
+    if (availableSubjects.indexOf(prevSubject) !== -1) {
+        subjectSelect.value = prevSubject;
     }
 
     updateModuleTeacherCourse();
@@ -61379,9 +61382,8 @@ var _activeDataSource = (function() {
         if (savedJr) { var d = JSON.parse(savedJr); for (var k in d) merged[k] = d[k]; }
         if (savedSr) { var d2 = JSON.parse(savedSr); for (var k2 in d2) merged[k2] = d2[k2]; }
         window.IMPORTED_COURSE_OPTIONS = merged;
-        if (Object.keys(merged).length > 0) return 'imported';
-    } catch(e) {}
-    return 'santao';
+        } catch(e) {}
+    return 'imported';  // 默认显示导入数据，无数据时下拉框为空
 })();
 
 function getActiveDataSource() {
