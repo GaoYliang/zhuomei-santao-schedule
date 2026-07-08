@@ -213,6 +213,52 @@ body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; backgro
     .cell-content .chapter-name { font-size: 7px; }
     .cell-actions { opacity: 1; visibility: visible; }
 }
+
+/* 大屏自适应 */
+@media (min-width: 1920px) {
+  .container { max-width: 2400px; padding: 20px; }
+  .header { padding: 28px; border-radius: 12px; }
+  .schedule-wrap { padding: 18px; border-radius: 12px; }
+  .schedule-table { font-size: 14px; }
+  .schedule-table th { padding: 10px 6px; font-size: 14px; }
+  .schedule-table th:first-child { width: 110px; }
+  .subject-cell { min-height: 56px; padding: 8px 6px; }
+  .cell-content .subject-name { font-size: 13px; }
+  .cell-content .chapter-name { font-size: 11px; }
+  .nav-btn { padding: 8px 18px; font-size: 13px; }
+  .combo-btn { padding: 6px 14px; font-size: 13px; }
+  .stats-bar { padding: 10px 20px; font-size: 14px; }
+  .notes-card { padding: 20px 26px; }
+  .learning-notes-locked { padding: 14px 10px; font-size: 13px; }
+}
+
+@media (min-width: 2560px) {
+  .container { max-width: 3200px; padding: 24px; }
+  .header { padding: 32px; font-size: 18px; }
+  .schedule-wrap { padding: 22px; }
+  .schedule-table { font-size: 15px; min-width: 2600px; }
+  .schedule-table th { padding: 12px 8px; font-size: 15px; }
+  .schedule-table th:first-child { width: 130px; }
+  .subject-cell { min-height: 64px; padding: 10px 8px; }
+  .cell-content .subject-name { font-size: 14px; }
+  .cell-content .chapter-name { font-size: 12px; }
+  .nav-btn { padding: 10px 22px; font-size: 14px; }
+  .combo-btn { padding: 8px 18px; font-size: 14px; }
+  .stats-bar { padding: 12px 24px; font-size: 15px; }
+  .notes-side-by-side { gap: 16px; }
+  .notes-card { padding: 24px 30px; font-size: 14px; }
+  .learning-notes-locked { padding: 16px 12px; font-size: 14px; }
+}
+
+@media (min-width: 3440px) {
+  .container { max-width: 4200px; padding: 28px; }
+  .schedule-table { font-size: 16px; min-width: 3200px; }
+  .schedule-table th { padding: 14px 10px; }
+  .schedule-table th:first-child { width: 150px; }
+  .subject-cell { min-height: 72px; padding: 12px 10px; }
+  .cell-content .subject-name { font-size: 15px; }
+  .cell-content .chapter-name { font-size: 13px; }
+}
 /* 隐藏年级和组合导航（学生选择后自动显示） */
 .nav-row { display: none !important; }
 .combo-nav { display: none !important; }
@@ -63278,7 +63324,7 @@ function saveSubjectRequirements() {
 
 </script>
 <!-- 励志语录 -->
-<div id=toast style=position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:1000;opacity:0;transition:opacity 0.3s;pointer-events:none;></div>
+<div id=toast style=position:fixed;bottom:16px;right:16px;background:rgba(30,40,55,0.75);color:#fff;padding:5px 12px;border-radius:6px;font-size:11px;z-index:1000;opacity:0;transition:opacity 0.3s;pointer-events:none;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,0.12);max-width:260px;></div>
 <div class="inspire-quote" id="inspire-quote" onclick="refreshQuote()" title="点击切换">
     <div class="inspire-quote-text" id="quote-text">星光不问赶路人，时光不负有心人</div>
     <div class="inspire-quote-author" id="quote-author">— 佚名</div>
