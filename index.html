@@ -61169,7 +61169,10 @@ function openCourseSelector(cellId, grade, subject) {
     teacherSelect.onchange = function() { refreshCourseList(); };
     var moduleSelect = document.getElementById('module-select');
     moduleSelect.onchange = function() { updateModuleTeacherCourse(); };
-    var moduleSelect = document.getElementById('module-select');
+    var courseSearchInput = document.getElementById('course-search');
+    if (courseSearchInput) {
+        courseSearchInput.oninput = function() { refreshCourseList(); };
+    }
 
     // Initial population of teacher + course dropdowns
     refreshCourseFilterDropdowns();
@@ -61198,7 +61201,10 @@ function openCourseSelector(cellId, grade, subject) {
             initBtn.style.background = '#28a745';
         }
     }
-modal.style.display = 'flex';
+    // Clear search input when opening modal
+    var courseSearchEl = document.getElementById('course-search');
+    if (courseSearchEl) courseSearchEl.value = '';
+    modal.style.display = 'flex';
 }
 
 function refreshCourseFilterDropdowns() {
@@ -61392,6 +61398,19 @@ function refreshCourseList() {
         var filtered = [];
         for (var i = 0; i < allCourses.length; i++) {
             if (allCourses[i].teacher === teacher) filtered.push(allCourses[i]);
+        }
+        allCourses = filtered;
+    }
+
+    // Filter by search keyword
+    var searchInput = document.getElementById('course-search');
+    var searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    if (searchTerm) {
+        var filtered = [];
+        for (var i = 0; i < allCourses.length; i++) {
+            var c = allCourses[i];
+            var text = (c.lesson || '') + '|' + (c.chapter || '') + '|' + (c.teacher || '');
+            if (text.toLowerCase().indexOf(searchTerm) > -1) filtered.push(c);
         }
         allCourses = filtered;
     }
@@ -62185,6 +62204,7 @@ function createCourseSelectorModal() {
         '<div id="grade-field" style="margin-bottom:10px"><label style="font-weight:600">年级:</label><br><select id="grade-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">科目:</label><br><select id="subject-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '<div id="module-field" style="margin-bottom:10px;display:none"><label style="font-weight:600">教材模块:</label><br><select id="module-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"><option value="">-- 全部模块 --</option></select></div><div id="teacher-field" style="margin-bottom:10px"><label style="font-weight:600">老师:</label><br><select id="teacher-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"><option value="">-- 全部老师 --</option></select></div>' +
+        '<div style="margin-bottom:10px"><label style="font-weight:600">🔍 搜索课程:</label><br><input id="course-search" type="text" placeholder="输入关键字搜索课程（如：第3讲、函数、力学...）" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box;font-size:14px"></div>' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">选择已有课程:</label><br><select id="course-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '</div>' +
         '<div id="custom-inputs-section" style="display:none;border:1px dashed #ccc;border-radius:8px;padding:12px;margin-bottom:10px;background:#f9f9f9">' +
