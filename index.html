@@ -62243,9 +62243,9 @@ function createCourseSelectorModal() {
             btn.style.background = '#6c757d';
         }
     });
-    modal.querySelector('#btn-save').addEventListener('click', function(e) {
+    modal.querySelector('#btn-save').addEventListener('click', async function(e) {
         e.preventDefault();
-        saveCourseSelection();
+        await saveCourseSelection();
     });
 
     modal.addEventListener('click', function(e) {
@@ -62293,7 +62293,7 @@ function clearCourseSelection() {
     closeCourseSelector();
 }
 
-function saveCourseSelection() {
+async function saveCourseSelection() {
     if (!currentEditCellId) return;
     if (!currentStudentId) { showToast('❌ 请先选择学生'); return; }
 
@@ -62320,7 +62320,7 @@ function saveCourseSelection() {
             };
             cellSelections[currentEditCellId] = selection;
             updateCellDisplayFromSelection(currentEditCellId, selection);
-            saveSelectionToCloud(selection);
+            await saveSelectionToCloud(selection);
             closeCourseSelector();
             var pid = 'panel-' + currentPhase + '-' + currentGrade + '-' + currentCombo;
             updateProgress(pid);
@@ -62345,7 +62345,7 @@ function saveCourseSelection() {
     };
     cellSelections[currentEditCellId] = selection;
     updateCellDisplayFromSelection(currentEditCellId, selection);
-    saveSelectionToCloud(selection);
+    await saveSelectionToCloud(selection);
     closeCourseSelector();
 
     var pid = 'panel-' + currentPhase + '-' + currentGrade + '-' + currentCombo;
@@ -62379,6 +62379,7 @@ async function saveSelectionToCloud(selection) {
                 .from('schedule_cell_courses_v2')
                 .update({
                     option_id: selection.option_id,
+                    custom_subject: selection.custom_subject,
                     custom_chapter: selection.custom_chapter,
                     custom_teacher: selection.custom_teacher,
                     custom_class_type: selection.custom_class_type
@@ -62388,7 +62389,7 @@ async function saveSelectionToCloud(selection) {
             await supabaseClient.from('schedule_cell_courses_v2').insert(selection);
         }
     }
-    catch (e) { console.error('保存失败:', e); }
+    catch (e) { console.error('保存失败:', e); showToast('❌ 保存失败: ' + e.message); }
 }
 
 // ===== Excel导入 =====
