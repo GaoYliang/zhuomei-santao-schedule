@@ -60913,6 +60913,8 @@ async function loadAllData() {
                 .select('*')
                 .eq('student_id', currentStudentId);
             
+            if (selErr) { console.error('[LOAD] load error:', selErr.message); }
+            console.log('[LOAD] student', currentStudentId, 'rows:', selections ? selections.length : 0);
             if (!selErr && selections) {
                 cellSelections = {};
                 selections.forEach(function(s) {
@@ -62316,6 +62318,7 @@ async function saveCourseSelection() {
                 custom_teacher: '三陶·' + classType + (santaoData.class_type ? '·' + santaoData.class_type : ''),
                 custom_class_type: classType
             };
+            console.log('[SAVE-UI] santao selection:', JSON.stringify({sid: selection.student_id, cid: selection.cell_id, ch: selection.custom_chapter}));
             cellSelections[currentEditCellId] = selection;
             updateCellDisplayFromSelection(currentEditCellId, selection);
             await saveSelectionToCloud(selection);
@@ -62341,6 +62344,7 @@ async function saveCourseSelection() {
         custom_teacher: customTeacher || null,
         custom_class_type: customClassType || classType || null
     };
+    console.log('[SAVE-UI] custom selection:', JSON.stringify({sid: selection.student_id, cid: selection.cell_id, ch: selection.custom_chapter}));
     cellSelections[currentEditCellId] = selection;
     updateCellDisplayFromSelection(currentEditCellId, selection);
     await saveSelectionToCloud(selection);
@@ -62356,8 +62360,8 @@ async function saveCourseSelection() {
 }
 
 async function saveSelectionToCloud(selection) {
-    try { 
-        // 先查询是否有已有记录（使用 maybeSingle 允许 0 行）
+    console.log('[SAVE] student_id:', selection.student_id, 'cell_id:', selection.cell_id);
+    try {
         var { data: existing, error: queryErr } = await supabaseClient
             .from('schedule_cell_courses_v2')
             .select('id')
@@ -62366,11 +62370,53 @@ async function saveSelectionToCloud(selection) {
             .maybeSingle();
         
         if (queryErr) {
-            console.error('查询失败:', queryErr);
-            // 查询失败时尝试直接插入
-            var insertData={student_id:selection.student_id,cell_id:selection.cell_id,option_id:selection.option_id,custom_chapter:selection.custom_chapter,custom_teacher:selection.custom_teacher,custom_class_type:selection.custom_class_type};await supabaseClient.from('schedule_cell_courses_v2').insert(insertData);
+            console.error('[SAVE] query error:', queryErr.message);
+            showToast('\u274c \u67e5\u8be2\u5931\u8d25: ' + queryErr.message);
             return;
         }
+        
+        var insertData = {
+            student_id: selection.student_id,
+            cell_id: selection.cell_id,
+            option_id: selection.option_id,
+            custom_chapter: selection.custom_chapter,
+            custom_teacher: selection.custom_teacher,
+            custom_class_type: selection.custom_class_type
+        };
+        console.log('[SAVE] data:', JSON.stringify(insertData));
+        
+        if (existing) {
+            console.log('[SAVE] updating id=', existing.id);
+            var updResult = await supabaseClient
+                .from('schedule_cell_courses_v2')
+                .update({
+                    option_id: selection.option_id,
+                    custom_chapter: selection.custom_chapter,
+                    custom_teacher: selection.custom_teacher,
+                    custom_class_type: selection.custom_class_type
+                })
+                .eq('id', existing.id);
+            if (updResult.error) {
+                console.error('[SAVE] update error:', updResult.error.message);
+                showToast('\u274c \u66f4\u65b0\u5931\u8d25: ' + updResult.error.message);
+            } else {
+                console.log('[SAVE] update OK');
+            }
+        } else {
+            console.log('[SAVE] inserting new row');
+            var insResult = await supabaseClient
+                .from('schedule_cell_courses_v2')
+                .insert(insertData);
+            if (insResult.error) {
+                console.error('[SAVE] insert error:', insResult.error.message);
+                showToast('\u274c \u4fdd\u5b58\u5931\u8d25: ' + insResult.error.message);
+            } else {
+                console.log('[SAVE] insert OK');
+            }
+        }
+    }
+    catch (e) { console.error('[SAVE] exception:', e); showToast('\u274c \u4fdd\u5b58\u5931\u8d25: ' + e.message); }
+}
         
         if (existing) {
             await supabaseClient
