@@ -219,35 +219,34 @@ body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; backgro
   .container { max-width: 98%; padding: 20px 24px; }
   .header { padding: 28px; border-radius: 12px; }
   .schedule-wrap { padding: 18px; border-radius: 12px; }
-  .schedule-table { font-size: 14px; min-width: auto; table-layout: fixed; }
-  .schedule-table th { padding: 12px 6px; font-size: 14px; }
-  .schedule-table th:first-child { width: 120px; font-size: 14px; }
-  .schedule-table td { padding: 4px 3px; }
-  .subject-cell { min-height: 64px; padding: 10px 5px; }
-  .cell-content .subject-name { font-size: 14px; }
-  .cell-content .chapter-name { font-size: 12px; }
-  .nav-btn { padding: 8px 20px; font-size: 14px; }
-  .combo-btn { padding: 7px 16px; font-size: 13px; }
-  .stats-bar { padding: 12px 22px; font-size: 14px; }
-  .notes-card { padding: 22px 28px; font-size: 14px; }
-  .learning-notes-locked { padding: 16px 12px; font-size: 14px; line-height: 1.7; }
+  .schedule-table { font-size: 14px; }
+  .schedule-table th { padding: 10px 6px; font-size: 14px; }
+  .schedule-table th:first-child { width: 110px; }
+  .schedule-table td { padding: 3px 2px; }
+  .subject-cell { min-height: 52px; padding: 6px 5px; }
+  .cell-content .subject-name { font-size: 13px; }
+  .cell-content .chapter-name { font-size: 11px; }
+  .nav-btn { padding: 8px 18px; font-size: 13px; }
+  .combo-btn { padding: 6px 14px; font-size: 13px; }
+  .stats-bar { padding: 10px 20px; font-size: 14px; }
+  .notes-card { padding: 20px 26px; }
+  .learning-notes-locked { padding: 14px 10px; font-size: 13px; }
 }
 
 @media (min-width: 2560px) {
   .container { max-width: 98%; padding: 24px 32px; }
   .header { padding: 32px; font-size: 20px; border-radius: 14px; margin-bottom: 16px; }
   .schedule-wrap { padding: 22px; border-radius: 14px; }
-  .schedule-table { font-size: 16px; min-width: auto; }
-  .schedule-table th { padding: 16px 8px; font-size: 16px; }
-  .schedule-table th:first-child { width: 140px; font-size: 16px; }
-  .schedule-table td { padding: 6px 4px; min-height: 80px; }
-  .subject-cell { min-height: 80px; padding: 12px 6px; }
-  .cell-content .subject-name { font-size: 15px; font-weight: 600; }
-  .cell-content .chapter-name { font-size: 12px; margin-top: 4px; }
-  .cell-content .class-type { font-size: 11px; }
-  .nav-btn { padding: 10px 24px; font-size: 15px; }
-  .combo-btn { padding: 8px 20px; font-size: 14px; }
-  .stats-bar { padding: 14px 28px; font-size: 15px; border-radius: 8px; }
+  .schedule-table { font-size: 15px; }
+  .schedule-table th { padding: 12px 8px; font-size: 15px; }
+  .schedule-table th:first-child { width: 120px; font-size: 15px; }
+  .schedule-table td { padding: 4px 3px; }
+  .subject-cell { min-height: 56px; padding: 8px 6px; }
+  .cell-content .subject-name { font-size: 14px; }
+  .cell-content .chapter-name { font-size: 12px; }
+  .nav-btn { padding: 10px 22px; font-size: 14px; }
+  .combo-btn { padding: 8px 18px; font-size: 14px; }
+  .stats-bar { padding: 12px 24px; font-size: 15px; border-radius: 8px; }
   .notes-side-by-side { gap: 20px; }
   .notes-card { padding: 24px 30px; font-size: 15px; border-radius: 12px; }
   .notes-card h3 { font-size: 17px; }
@@ -257,11 +256,11 @@ body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; backgro
 
 @media (min-width: 3440px) {
   .container { max-width: 98%; padding: 28px 40px; }
-  .schedule-table { font-size: 16px; min-width: auto; }
-  .schedule-table th { padding: 16px 10px; font-size: 16px; }
-  .schedule-table th:first-child { width: 150px; }
+  .schedule-table { font-size: 16px; }
+  .schedule-table th { padding: 14px 10px; font-size: 16px; }
+  .schedule-table th:first-child { width: 140px; }
   .schedule-table td { padding: 5px 4px; }
-  .subject-cell { min-height: 76px; padding: 12px 8px; }
+  .subject-cell { min-height: 60px; padding: 10px 8px; }
   .cell-content .subject-name { font-size: 15px; }
   .cell-content .chapter-name { font-size: 13px; }
 }
@@ -61060,10 +61059,11 @@ function updateCellDisplayFromSelection(cellId, selection) {
                 for (var i = 0; i < opts.length; i++) {
                     if (opts[i].id === selection.option_id) {
                         subject = opts[i].subject || '';
-                        html = '<div class="subject-name">' + esc(subject) + '</div>';
-                        html += '<div class="chapter-name">' + esc(opts[i].chapter || '') + '</div>';
-                        if (opts[i].teacher) html += '<div class="chapter-name" style="color:#999">👤 ' + esc(opts[i].teacher) + '</div>';
-                        if (opts[i].class_type) html += '<div class="chapter-name" style="color:#666">📋 ' + esc(opts[i].class_type) + '</div>';
+                        var chapterText = opts[i].chapter || '';
+                        var lessonTitle = chapterText;
+                        html = '<div class="subject-name">' + esc(lessonTitle) + '</div>';
+                        if (opts[i].teacher) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(opts[i].teacher) + (subject ? ' · ' + esc(subject) : '') + '</div>';
+                        if (opts[i].class_type) html += '<div class="chapter-name" style="color:#777">📋 ' + esc(opts[i].class_type) + '</div>';
                         break;
                     }
                 }
@@ -61071,9 +61071,9 @@ function updateCellDisplayFromSelection(cellId, selection) {
         }
     } else if (selection.custom_chapter) {
         subject = selection.custom_subject || '';
-        html += '<div class="chapter-name">' + esc(selection.custom_chapter) + '</div>';
-        if (selection.custom_teacher) html += '<div class="chapter-name" style="color:#999">👤 ' + esc(selection.custom_teacher) + '</div>';
-        if (selection.custom_class_type) html += '<div class="chapter-name" style="color:#666">📋 ' + esc(selection.custom_class_type) + '</div>';
+        html = '<div class="subject-name">' + esc(selection.custom_chapter) + '</div>';
+        if (selection.custom_teacher) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(selection.custom_teacher) + (subject ? ' · ' + esc(subject) : '') + '</div>';
+        if (selection.custom_class_type) html += '<div class="chapter-name" style="color:#777">📋 ' + esc(selection.custom_class_type) + '</div>';
     }
     cd.innerHTML = html;
     
