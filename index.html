@@ -61049,8 +61049,9 @@ var subjectColors = {
 function updateCellDisplayFromSelection(cellId, selection) {
     var cd = document.getElementById('content-' + cellId);
     if (!cd) return;
+    var cell = document.getElementById('cell-' + cellId);
+    var subject = cell ? (cell.getAttribute('data-subject') || '') : '';
     var html = '<div class="subject-name"></div>';
-    var subject = '';
     
     if (selection.option_id && courseOptions) {
         for (var g in courseOptions) {
@@ -61058,7 +61059,6 @@ function updateCellDisplayFromSelection(cellId, selection) {
                 var opts = courseOptions[g][s];
                 for (var i = 0; i < opts.length; i++) {
                     if (opts[i].id === selection.option_id) {
-                        subject = opts[i].subject || '';
                         var chapterText = opts[i].chapter || '';
                         var lessonTitle = chapterText;
                         html = '<div class="subject-name">' + esc(lessonTitle) + '</div>';
@@ -61070,7 +61070,6 @@ function updateCellDisplayFromSelection(cellId, selection) {
             }
         }
     } else if (selection.custom_chapter) {
-        subject = selection.custom_subject || '';
         html = '<div class="subject-name">' + esc(selection.custom_chapter) + '</div>';
         if (selection.custom_teacher) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(selection.custom_teacher) + '</div>';
         if (selection.custom_class_type) html += '<div class="chapter-name" style="color:#777">📋 ' + esc(selection.custom_class_type) + '</div>';
@@ -61078,7 +61077,6 @@ function updateCellDisplayFromSelection(cellId, selection) {
     cd.innerHTML = html;
     
     // 设置单元格背景色
-    var cell = document.getElementById('cell-' + cellId);
     if (cell && subject) {
         var bgColor = subjectColors[subject];
         if (bgColor) cell.style.background = bgColor;
@@ -62370,7 +62368,7 @@ async function saveSelectionToCloud(selection) {
         if (queryErr) {
             console.error('查询失败:', queryErr);
             // 查询失败时尝试直接插入
-            await supabaseClient.from('schedule_cell_courses_v2').insert(selection);
+            var insertData={student_id:selection.student_id,cell_id:selection.cell_id,option_id:selection.option_id,custom_chapter:selection.custom_chapter,custom_teacher:selection.custom_teacher,custom_class_type:selection.custom_class_type};await supabaseClient.from('schedule_cell_courses_v2').insert(insertData);
             return;
         }
         
@@ -62379,14 +62377,13 @@ async function saveSelectionToCloud(selection) {
                 .from('schedule_cell_courses_v2')
                 .update({
                     option_id: selection.option_id,
-                    custom_subject: selection.custom_subject,
                     custom_chapter: selection.custom_chapter,
                     custom_teacher: selection.custom_teacher,
                     custom_class_type: selection.custom_class_type
                 })
                 .eq('id', existing.id);
         } else {
-            await supabaseClient.from('schedule_cell_courses_v2').insert(selection);
+            var insertData={student_id:selection.student_id,cell_id:selection.cell_id,option_id:selection.option_id,custom_chapter:selection.custom_chapter,custom_teacher:selection.custom_teacher,custom_class_type:selection.custom_class_type};await supabaseClient.from('schedule_cell_courses_v2').insert(insertData);
         }
     }
     catch (e) { console.error('保存失败:', e); showToast('❌ 保存失败: ' + e.message); }
