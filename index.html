@@ -61062,7 +61062,7 @@ function updateCellDisplayFromSelection(cellId, selection) {
                         var chapterText = opts[i].chapter || '';
                         var lessonTitle = chapterText;
                         html = '<div class="subject-name">' + esc(lessonTitle) + '</div>';
-                        if (opts[i].teacher) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(opts[i].teacher) + (subject ? ' · ' + esc(subject) : '') + '</div>';
+                        if (opts[i].teacher) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(opts[i].teacher) + '</div>';
                         if (opts[i].class_type) html += '<div class="chapter-name" style="color:#777">📋 ' + esc(opts[i].class_type) + '</div>';
                         break;
                     }
@@ -61072,7 +61072,7 @@ function updateCellDisplayFromSelection(cellId, selection) {
     } else if (selection.custom_chapter) {
         subject = selection.custom_subject || '';
         html = '<div class="subject-name">' + esc(selection.custom_chapter) + '</div>';
-        if (selection.custom_teacher) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(selection.custom_teacher) + (subject ? ' · ' + esc(subject) : '') + '</div>';
+        if (selection.custom_teacher) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(selection.custom_teacher) + '</div>';
         if (selection.custom_class_type) html += '<div class="chapter-name" style="color:#777">📋 ' + esc(selection.custom_class_type) + '</div>';
     }
     cd.innerHTML = html;
