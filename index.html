@@ -61096,8 +61096,7 @@ function updateCellDisplayFromSelection(cellId, selection) {
         }
     } else if (selection.custom_chapter) {
         var _chTitle = selection.custom_chapter;
-        _chTitle = _chTitle.replace(/^\d+\s*/, '');
-        _chTitle = _chTitle.replace(/^第\d+讲\s*/, '');
+        _chTitle = _chTitle.replace(/^\d+[.\u3001\s]+\s*/, '');
         html = '<div class="subject-name">' + esc(_chTitle) + '</div>';
         if (selection.version) html += '<div class="chapter-name" style="color:#1a5fb4;font-weight:600">📘 ' + esc(selection.version) + '</div>';
         var _tName = selection.custom_teacher || '';
