@@ -60642,15 +60642,19 @@ async function deleteGroup() {
     if (!confirm('确定要删除分组 [' + groupName + '] 吗？该分组的所有数据将被清空！')) return;
     
     try {
-        // 删除该分组的所有相关数据
-        await supabaseClient.from('schedule_courses').delete().eq('group_id', groupId);
-        await supabaseClient.from('schedule_marks').delete().eq('group_id', groupId);
-        await supabaseClient.from('schedule_edits').delete().eq('group_id', groupId);
-        await supabaseClient.from('operation_logs').delete().eq('group_id', groupId);
-        await supabaseClient.from('schedule_subject_reqs').delete().eq('group_id', groupId);
+        // 删除该分组的相关数据（只有students和operation_logs有group_id列）
+        var tables = ['students', 'operation_logs'];
+        for (var i = 0; i < tables.length; i++) {
+            var res = await supabaseClient.from(tables[i]).delete().eq('group_id', groupId);
+            if (res.error) console.warn('删除 ' + tables[i] + ' 失败:', res.error.message);
+        }
         
         // 删除分组本身
-        await supabaseClient.from('user_groups').delete().eq('id', groupId);
+        var delRes = await supabaseClient.from('user_groups').delete().eq('id', groupId);
+        if (delRes.error) {
+            alert('删除分组失败: ' + delRes.error.message);
+            return;
+        }
         
         // 更新本地数据
         delete userGroups[groupId];
