@@ -61497,19 +61497,315 @@ function _populateImportedDropdowns() {
     refreshCourseFilterDropdowns();
 }
 
+
+function _importMultipleFiles(files) {
+    var fileList = Array.from(files);
+    var pending = fileList.length;
+    var results = [];
+    var errors = [];
+    
+    function processNext(idx) {
+        if (idx >= fileList.length) {
+            // All done
+            if (errors.length > 0) {
+                console.warn('导入错误:', errors);
+            }
+            if (results.length > 0) {
+                switchDataSource('imported');
+                var msg = '批量导入完成:\n';
+                results.forEach(function(r) { msg += '✓ ' + r + '\n'; });
+                if (errors.length > 0) {
+                    msg += '\n以下文件导入失败:\n';
+                    errors.forEach(function(e) { msg += '✗ ' + e + '\n'; });
+                }
+                alert(msg);
+            } else {
+                alert('所有文件导入失败:\n' + errors.join('\n'));
+            }
+            return;
+        }
+        
+        var file = fileList[idx];
+        var ext = file.name.split('.').pop().toLowerCase();
+        var origAlert = window.alert;
+        var capturedMsg = null;
+        window.alert = function(msg) { capturedMsg = msg; };
+        
+        var origSwitch = window.switchDataSource;
+        window.switchDataSource = function() {}; // suppress during batch
+        
+        function restore() {
+            window.alert = origAlert;
+            window.switchDataSource = origSwitch;
+        }
+        
+        if (ext === 'json') {
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    var parsed = JSON.parse(ev.target.result);
+                    if (typeof parsed !== 'object' || Array.isArray(parsed)) {
+                        errors.push(file.name + ': JSON格式错误');
+                    } else {
+                        _mergeImportedData(parsed, file.name);
+                        var ctCount = 0, courseCount = 0;
+                        for (var ct in parsed) { ctCount++; for (var g in parsed[ct]) { for (var s in parsed[ct][g]) { if (Array.isArray(parsed[ct][g][s])) courseCount += parsed[ct][g][s].length; } } }
+                        results.push(file.name + ' (' + ctCount + '个班型, ' + courseCount + '条)');
+                    }
+                } catch(err) {
+                    errors.push(file.name + ': ' + err.message);
+                }
+                restore();
+                processNext(idx + 1);
+            };
+            reader.readAsText(file);
+        } else {
+            // Excel - use existing _importExcel but intercept
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    var data = new Uint8Array(ev.target.result);
+                    var wb = XLSX.read(data, {type: 'array'});
+                    if (!wb.SheetNames || wb.SheetNames.length === 0) {
+                        errors.push(file.name + ': 没有工作表');
+                        restore();
+                        processNext(idx + 1);
+                        return;
+                    }
+                    var ws = wb.Sheets[wb.SheetNames[0]];
+                    var rows = XLSX.utils.sheet_to_json(ws, {header: 1, defval: '', blankrows: false});
+                    rows = rows.filter(function(r) { return r && r.some(function(v) { return v !== '' && v != null; }); });
+                    if (rows.length < 2) {
+                        errors.push(file.name + ': 数据不足');
+                        restore();
+                        processNext(idx + 1);
+                        return;
+                    }
+                    // Auto-detect and import (skip config dialog for batch)
+                    _autoImportExcelRows(file.name, rows);
+                    results.push(file.name);
+                } catch(err) {
+                    errors.push(file.name + ': ' + err.message);
+                }
+                restore();
+                processNext(idx + 1);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    }
+    
+    processNext(0);
+}
+
+function _autoImportExcelRows(fileName, rows) {
+    // Simplified auto-detect for batch import (uses same logic as _showExcelConfigDialog)
+    var headerRow = null, dataStartRow = 1;
+    var teacherKeywords = /老师|教师|主讲|讲师|授课/;
+    var courseKeywords = /课程名称|课程|课名|章节名|课题|内容名称/;
+    
+    for (var hi = 0; hi < Math.min(rows.length, 5); hi++) {
+        var row = rows[hi];
+        if (!row || !row.some) continue;
+        var matchCount = 0;
+        for (var ci = 0; ci < row.length; ci++) {
+            var v = String(row[ci] || '');
+            if (teacherKeywords.test(v)) matchCount += 2;
+            if (courseKeywords.test(v)) matchCount += 2;
+            if (/^(序号|讲次|编号|NO|#|\d+)$/i.test(v)) matchCount += 1;
+        }
+        if (matchCount >= 3) { headerRow = row; dataStartRow = hi + 1; break; }
+    }
+    if (!headerRow) { headerRow = rows[0]; dataStartRow = 1; }
+    
+    // Find teacher and course columns
+    var teacherCol = -1, courseCol = -1;
+    for (var ci = 0; ci < headerRow.length; ci++) {
+        var h = String(headerRow[ci] || '');
+        if (teacherCol === -1 && teacherKeywords.test(h)) teacherCol = ci;
+        if (courseCol === -1 && courseKeywords.test(h)) courseCol = ci;
+    }
+    if (courseCol === -1) courseCol = teacherCol === 0 ? 1 : 0;
+    
+    // Detect class type and subject from filename
+    var classType = '导入班型';
+    var subject = '综合';
+    var grade = '通用';
+    var nameLower = fileName.replace(/\.xlsx?$/i, '');
+    var subjectList = ['语文','数学','英语','物理','化学','生物','政治','历史','地理'];
+    for (var si = 0; si < subjectList.length; si++) {
+        if (nameLower.indexOf(subjectList[si]) !== -1) { subject = subjectList[si]; break; }
+    }
+    var gradeList = ['初一','初二','初三','高一','高二','高三','六年级'];
+    for (var gi = 0; gi < gradeList.length; gi++) {
+        if (nameLower.indexOf(gradeList[gi]) !== -1) { grade = gradeList[gi]; break; }
+    }
+    // Try to extract class type
+    var ctMatch = nameLower.match(/(同步启航|同步基础|同步进阶|高阶|考点闯关|实验班|普通班|冲刺班|强化班|提升班|基础班)/);
+    if (ctMatch) classType = ctMatch[1] + '班';
+    
+    var courses = [];
+    for (var ri = dataStartRow; ri < rows.length; ri++) {
+        var row = rows[ri];
+        if (!row) continue;
+        var courseName = courseCol >= 0 ? String(row[courseCol] || '').trim() : '';
+        var teacher = teacherCol >= 0 ? String(row[teacherCol] || '').trim() : '';
+        if (!courseName) continue;
+        courses.push({ lesson: '', chapter: courseName, teacher: teacher, class_type: classType, _source: fileName });
+    }
+    
+    if (courses.length === 0) return;
+    
+    if (!window.IMPORTED_COURSE_OPTIONS) window.IMPORTED_COURSE_OPTIONS = {};
+    if (!window.IMPORTED_COURSE_OPTIONS[classType]) window.IMPORTED_COURSE_OPTIONS[classType] = {};
+    if (!window.IMPORTED_COURSE_OPTIONS[classType][grade]) window.IMPORTED_COURSE_OPTIONS[classType][grade] = {};
+    var existing = window.IMPORTED_COURSE_OPTIONS[classType][grade][subject] || [];
+    window.IMPORTED_COURSE_OPTIONS[classType][grade][subject] = existing.concat(courses);
+    _saveImportedToStorage();
+}
+
+function _mergeImportedData(parsed, sourceFile) {
+    if (!window.IMPORTED_COURSE_OPTIONS) window.IMPORTED_COURSE_OPTIONS = {};
+    for (var ct in parsed) {
+        if (!window.IMPORTED_COURSE_OPTIONS[ct]) window.IMPORTED_COURSE_OPTIONS[ct] = {};
+        window.IMPORTED_COURSE_OPTIONS[ct]._source = sourceFile;
+        for (var g in parsed[ct]) {
+            if (!window.IMPORTED_COURSE_OPTIONS[ct][g]) window.IMPORTED_COURSE_OPTIONS[ct][g] = {};
+            for (var s in parsed[ct][g]) {
+                var courses = parsed[ct][g][s] || [];
+                for (var i = 0; i < courses.length; i++) { courses[i]._source = sourceFile; }
+                var existing = window.IMPORTED_COURSE_OPTIONS[ct][g][s] || [];
+                window.IMPORTED_COURSE_OPTIONS[ct][g][s] = existing.concat(courses);
+            }
+        }
+    }
+    _saveImportedToStorage();
+}
+
+function _saveImportedToStorage() {
+    try {
+        var all = window.IMPORTED_COURSE_OPTIONS || {};
+        var juniorGrades = ['初一','初二','初三','六年级','通用'];
+        var seniorGrades = ['高一','高二','高三','通用'];
+        var jrData = {}, srData = {};
+        for (var ct in all) {
+            for (var g in all[ct]) {
+                if (g === '_source') continue;
+                if (juniorGrades.indexOf(g) !== -1) {
+                    if (!jrData[ct]) jrData[ct] = {};
+                    jrData[ct][g] = all[ct][g];
+                }
+                if (seniorGrades.indexOf(g) !== -1) {
+                    if (!srData[ct]) srData[ct] = {};
+                    srData[ct][g] = all[ct][g];
+                }
+            }
+        }
+        localStorage.setItem('imported_course_options_初中', JSON.stringify(jrData));
+        localStorage.setItem('imported_course_options_高中', JSON.stringify(srData));
+    } catch(err) {}
+}
+
+function showImportManager() {
+    var all = window.IMPORTED_COURSE_OPTIONS || {};
+    var sources = {};  // { fileName: [classTypes] }
+    var classTypes = Object.keys(all).filter(function(k) { return k !== '_source'; });
+    
+    if (classTypes.length === 0) {
+        alert('暂无导入数据');
+        return;
+    }
+    
+    // Group by source
+    classTypes.forEach(function(ct) {
+        var src = all[ct]._source || '未知来源';
+        if (!sources[src]) sources[src] = [];
+        sources[src].push(ct);
+    });
+    
+    var sourceNames = Object.keys(sources);
+    
+    var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;display:flex;align-items:center;justify-content:center;" id="import-manager-modal" onclick="if(event.target===this)closeImportManager()">' +
+        '<div style="background:#fff;padding:24px;border-radius:12px;max-width:500px;width:92%;max-height:70vh;overflow-y:auto;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
+        '<h3 style="margin:0">管理导入数据</h3>' +
+        '<button onclick="closeImportManager()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999">×</button></div>';
+    
+    sourceNames.forEach(function(src, si) {
+        var cts = sources[src];
+        var totalCourses = 0;
+        cts.forEach(function(ct) {
+            for (var g in all[ct]) {
+                if (g === '_source') continue;
+                for (var s in all[ct][g]) {
+                    if (Array.isArray(all[ct][g][s])) totalCourses += all[ct][g][s].length;
+                }
+            }
+        });
+        
+        html += '<div style="border:1px solid #eee;border-radius:8px;padding:12px;margin-bottom:10px">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center">' +
+            '<div><strong>' + src + '</strong><br><span style="font-size:12px;color:#888">' + 
+            cts.join(', ') + ' (' + totalCourses + '条课程)</span></div>' +
+            '<button onclick="deleteImportSource(\'' + src.replace(/'/g, "\\'") + '\')" style="padding:4px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">删除</button>' +
+            '</div></div>';
+    });
+    
+    html += '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">' +
+        '<button onclick="deleteAllImported()" style="padding:8px 16px;background:#c0392b;color:#fff;border:none;border-radius:4px;cursor:pointer;">清空全部</button>' +
+        '<button onclick="closeImportManager()" style="padding:8px 16px;border:1px solid #ddd;border-radius:4px;cursor:pointer;">关闭</button>' +
+        '</div></div></div>';
+    
+    var div = document.createElement('div');
+    div.innerHTML = html;
+    document.body.appendChild(div.firstElementChild);
+}
+
+function closeImportManager() {
+    var modal = document.getElementById('import-manager-modal');
+    if (modal) modal.remove();
+}
+
+function deleteImportSource(sourceName) {
+    var all = window.IMPORTED_COURSE_OPTIONS || {};
+    var classTypes = Object.keys(all).filter(function(k) { return k !== '_source'; });
+    var toDelete = classTypes.filter(function(ct) { return (all[ct]._source || '未知来源') === sourceName; });
+    
+    if (toDelete.length === 0) { alert('未找到该来源的数据'); return; }
+    if (!confirm('确定删除 [' + sourceName + '] 的导入数据？\n将删除: ' + toDelete.join(', '))) return;
+    
+    toDelete.forEach(function(ct) { delete all[ct]; });
+    window.IMPORTED_COURSE_OPTIONS = all;
+    _saveImportedToStorage();
+    
+    var remaining = Object.keys(all).filter(function(k) { return k !== '_source'; });
+    if (remaining.length === 0) {
+        closeImportManager();
+        switchDataSource('santao');
+    } else {
+        showImportManager(); // refresh
+    }
+    refreshCourseFilterDropdowns();
+}
+
+function deleteAllImported() {
+    if (!confirm('确定清空所有导入数据？')) return;
+    window.IMPORTED_COURSE_OPTIONS = {};
+    try { localStorage.removeItem('imported_course_options'); localStorage.removeItem('imported_course_options_初中'); localStorage.removeItem('imported_course_options_高中'); } catch(e) {}
+    closeImportManager();
+    switchDataSource('santao');
+    refreshCourseFilterDropdowns();
+}
+
+
 function importCourseDataFile() {
     var input = document.createElement('input');
     input.type = 'file';
     input.accept = '.xlsx,.xls,.json';
+    input.multiple = true;
     input.onchange = function(e) {
-        var file = e.target.files[0];
-        if (!file) return;
-        var ext = file.name.split('.').pop().toLowerCase();
-        if (ext === 'json') {
-            _importJSON(file);
-        } else {
-            _importExcel(file);
-        }
+        var files = e.target.files;
+        if (!files || files.length === 0) return;
+        _importMultipleFiles(files);
     };
     input.click();
 }
@@ -61571,7 +61867,9 @@ function _importExcel(file) {
     reader.readAsArrayBuffer(file);
 }
 
+var _importFileName = '';
 function _showExcelConfigDialog(fileName, rows) {
+    _importFileName = fileName;
     // Smart header detection: scan first 5 rows for the best header row
     var headerRow = null, dataStartRow = 1, headerRowIdx = -1;
     var teacherKeywords = /老师|教师|主讲|讲师|授课/;
@@ -61747,7 +62045,10 @@ function _showExcelConfigDialog(fileName, rows) {
         if (!window.IMPORTED_COURSE_OPTIONS[classType]) window.IMPORTED_COURSE_OPTIONS[classType] = {};
         if (!window.IMPORTED_COURSE_OPTIONS[classType][grade]) window.IMPORTED_COURSE_OPTIONS[classType][grade] = {};
         var existingCourses = window.IMPORTED_COURSE_OPTIONS[classType][grade][subject] || [];
+        // Tag courses with source file
+        for (var ci = 0; ci < courses.length; ci++) { courses[ci]._source = _importFileName || 'unknown'; }
         window.IMPORTED_COURSE_OPTIONS[classType][grade][subject] = existingCourses.concat(courses);
+        if (!window.IMPORTED_COURSE_OPTIONS[classType]._source) window.IMPORTED_COURSE_OPTIONS[classType]._source = _importFileName || 'unknown';
 
         console.log('[import] 导入完成:', classType, grade, subject, courses.length + '条');
         console.log('[import] 前3条:', courses.slice(0, 3));
@@ -61819,7 +62120,7 @@ function createCourseSelectorModal() {
     modal.id = 'course-selector-modal';
     modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center;';
     modal.innerHTML = '<div style="background:#fff;padding:24px;border-radius:12px;max-width:520px;width:92%;max-height:85vh;overflow-y:auto;">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="margin:0">选择课程</h3><div style="display:flex;gap:8px"><button id="btn-import" type="button" style="padding:6px 14px;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px"></button><button id="btn-import-file" type="button" style="padding:6px 14px;background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">📁 导入文件</button><button id="btn-clear-import" type="button" style="padding:6px 14px;background:#e74c3c;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px" title="清空所有导入数据">清空导入</button><button id="btn-custom" type="button" style="padding:6px 14px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">自定义</button></div></div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="margin:0">选择课程</h3><div style="display:flex;gap:8px"><button id="btn-import" type="button" style="padding:6px 14px;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px"></button><button id="btn-import-file" type="button" style="padding:6px 14px;background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">📁 导入文件</button><button id="btn-clear-import" type="button" style="padding:6px 14px;background:#e67e22;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px" title="管理导入数据（查看/删除）">管理导入</button><button id="btn-custom" type="button" style="padding:6px 14px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">自定义</button></div></div>' +
         '<div id="dropdown-section">' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">班型:</label><br><select id="classtype-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '<div id="grade-field" style="margin-bottom:10px"><label style="font-weight:600">年级:</label><br><select id="grade-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
@@ -61861,7 +62162,7 @@ function createCourseSelectorModal() {
     });
     modal.querySelector('#btn-clear-import').addEventListener('click', function(e) {
         e.preventDefault();
-        clearImportedData();
+        showImportManager();
     });
     modal.querySelector('#btn-custom').addEventListener('click', function(e) {
         e.preventDefault();
