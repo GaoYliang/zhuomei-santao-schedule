@@ -61103,6 +61103,7 @@ function openCourseSelector(cellId, grade, subject) {
 
     // --- 科目下拉框由 refreshCourseFilterDropdowns 从实际数据动态生成 ---
     // Wire up cascading change handlers
+    var subjectSelect = document.getElementById("subject-select");
     classTypeSelect.onchange = function() { refreshCourseFilterDropdowns(); };
     gradeSelect.onchange = function() { refreshCourseFilterDropdowns(); };
     subjectSelect.onchange = function() { refreshCourseFilterDropdowns(); };
