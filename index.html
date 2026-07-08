@@ -61524,8 +61524,21 @@ function _importJSON(file) {
             var hasExisting = window.IMPORTED_COURSE_OPTIONS && Object.keys(window.IMPORTED_COURSE_OPTIONS).length > 0;
             if (!confirm('即将导入 ' + ctCount + ' 个班型, ' + courseCount + ' 条课程。' + (hasExisting ? '\n这将替换已有导入数据。' : '') + '\n确定导入？')) return;
             window.IMPORTED_COURSE_OPTIONS = parsed;
-            try { localStorage.setItem('imported_course_options', JSON.stringify(parsed)); } catch(err) {}
+            try {
+                localStorage.setItem('imported_course_options', JSON.stringify(parsed));
+                // Also save to level-specific keys
+                var _jr = {}, _sr = {};
+                var _jg = ['初一','初二','初三','六年级','通用'];
+                var _sg = ['高一','高二','高三','通用'];
+                for (var _ct in parsed) { for (var _g in parsed[_ct]) {
+                    if (_jg.indexOf(_g) !== -1) { if (!_jr[_ct]) _jr[_ct] = {}; _jr[_ct][_g] = parsed[_ct][_g]; }
+                    if (_sg.indexOf(_g) !== -1) { if (!_sr[_ct]) _sr[_ct] = {}; _sr[_ct][_g] = parsed[_ct][_g]; }
+                }}
+                localStorage.setItem('imported_course_options_初中', JSON.stringify(_jr));
+                localStorage.setItem('imported_course_options_高中', JSON.stringify(_sr));
+            } catch(err) {}
             updateImportPanel();
+            switchDataSource('imported');
             alert('导入成功！');
         } catch (err) { alert('JSON解析失败: ' + err.message); }
     };
@@ -61758,6 +61771,7 @@ function _showExcelConfigDialog(fileName, rows) {
             localStorage.setItem('imported_course_options_高中', JSON.stringify(srData));
         } catch(err) {}
         dlg.remove();
+        switchDataSource('imported');
         alert('导入成功！' + classType + ' / ' + grade + ' / ' + subject + '\n新增 ' + courses.length + ' 条课程');
     };
 }
@@ -61791,7 +61805,7 @@ function exportImportedData() {
 function clearImportedData() {
     if (!confirm('确定清空所有导入数据？')) return;
     window.IMPORTED_COURSE_OPTIONS = {};
-    try { localStorage.removeItem('imported_course_options'); } catch(e) {}
+    try { localStorage.removeItem('imported_course_options'); localStorage.removeItem('imported_course_options_初中'); localStorage.removeItem('imported_course_options_高中'); } catch(e) {}
     switchDataSource('santao');
 }
 
