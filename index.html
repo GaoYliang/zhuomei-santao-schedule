@@ -216,13 +216,14 @@ body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; backgro
 
 /* 大屏自适应 */
 @media (min-width: 1920px) {
-  .container { max-width: 2400px; padding: 20px; }
+  .container { max-width: 98%; padding: 20px 24px; }
   .header { padding: 28px; border-radius: 12px; }
   .schedule-wrap { padding: 18px; border-radius: 12px; }
-  .schedule-table { font-size: 14px; }
+  .schedule-table { font-size: 14px; min-width: auto; table-layout: fixed; }
   .schedule-table th { padding: 10px 6px; font-size: 14px; }
   .schedule-table th:first-child { width: 110px; }
-  .subject-cell { min-height: 56px; padding: 8px 6px; }
+  .schedule-table td { padding: 3px 2px; }
+  .subject-cell { min-height: 56px; padding: 8px 5px; }
   .cell-content .subject-name { font-size: 13px; }
   .cell-content .chapter-name { font-size: 11px; }
   .nav-btn { padding: 8px 18px; font-size: 13px; }
@@ -233,29 +234,31 @@ body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; backgro
 }
 
 @media (min-width: 2560px) {
-  .container { max-width: 3200px; padding: 24px; }
+  .container { max-width: 98%; padding: 24px 32px; }
   .header { padding: 32px; font-size: 18px; }
   .schedule-wrap { padding: 22px; }
-  .schedule-table { font-size: 15px; min-width: 2600px; }
-  .schedule-table th { padding: 12px 8px; font-size: 15px; }
+  .schedule-table { font-size: 15px; min-width: auto; }
+  .schedule-table th { padding: 14px 8px; font-size: 15px; }
   .schedule-table th:first-child { width: 130px; }
-  .subject-cell { min-height: 64px; padding: 10px 8px; }
+  .schedule-table td { padding: 4px 3px; }
+  .subject-cell { min-height: 68px; padding: 10px 6px; }
   .cell-content .subject-name { font-size: 14px; }
   .cell-content .chapter-name { font-size: 12px; }
   .nav-btn { padding: 10px 22px; font-size: 14px; }
   .combo-btn { padding: 8px 18px; font-size: 14px; }
   .stats-bar { padding: 12px 24px; font-size: 15px; }
-  .notes-side-by-side { gap: 16px; }
+  .notes-side-by-side { gap: 20px; }
   .notes-card { padding: 24px 30px; font-size: 14px; }
   .learning-notes-locked { padding: 16px 12px; font-size: 14px; }
 }
 
 @media (min-width: 3440px) {
-  .container { max-width: 4200px; padding: 28px; }
-  .schedule-table { font-size: 16px; min-width: 3200px; }
-  .schedule-table th { padding: 14px 10px; }
+  .container { max-width: 98%; padding: 28px 40px; }
+  .schedule-table { font-size: 16px; min-width: auto; }
+  .schedule-table th { padding: 16px 10px; font-size: 16px; }
   .schedule-table th:first-child { width: 150px; }
-  .subject-cell { min-height: 72px; padding: 12px 10px; }
+  .schedule-table td { padding: 5px 4px; }
+  .subject-cell { min-height: 76px; padding: 12px 8px; }
   .cell-content .subject-name { font-size: 15px; }
   .cell-content .chapter-name { font-size: 13px; }
 }
