@@ -61095,9 +61095,14 @@ function updateCellDisplayFromSelection(cellId, selection) {
             }
         }
     } else if (selection.custom_chapter) {
-        html = '<div class="subject-name">' + esc(selection.custom_chapter) + '</div>';
+        var _chTitle = selection.custom_chapter;
+        _chTitle = _chTitle.replace(/^\d+\s*/, '');
+        _chTitle = _chTitle.replace(/^第\d+讲\s*/, '');
+        html = '<div class="subject-name">' + esc(_chTitle) + '</div>';
         if (selection.version) html += '<div class="chapter-name" style="color:#1a5fb4;font-weight:600">📘 ' + esc(selection.version) + '</div>';
-        if (selection.custom_teacher) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(selection.custom_teacher) + '</div>';
+        var _tName = selection.custom_teacher || '';
+        if (_tName.indexOf('\u00b7') !== -1) _tName = _tName.split('\u00b7')[0];
+        if (_tName) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(_tName) + '</div>';
         if (selection.custom_class_type) html += '<div class="chapter-name" style="color:#777">📋 ' + esc(selection.custom_class_type) + '</div>';
     }
     cd.innerHTML = html;
@@ -62281,7 +62286,7 @@ function createCourseSelectorModal() {
     modal.id = 'course-selector-modal';
     modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center;';
     modal.innerHTML = '<div style="background:#fff;padding:24px;border-radius:12px;max-width:520px;width:92%;max-height:85vh;overflow-y:auto;">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="margin:0">选择课程</h3><div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span style="font-size:12px;color:#888;margin-right:4px">数据源:</span><button id="btn-tab-imported" type="button" style="padding:6px 14px;color:#fff;border:none;border-radius:4px 4px 0 0;cursor:pointer;font-size:13px;font-weight:600;background:#1a5fb4">📁 导入数据</button><button id="btn-tab-santao" type="button" style="padding:6px 14px;color:#fff;border:none;border-radius:4px 4px 0 0;cursor:pointer;font-size:13px;font-weight:600;background:#aaa">🌐 抓取数据</button><span style="width:1px;height:20px;background:#ddd;margin:0 4px"></span><button id="btn-import-file" type="button" style="padding:6px 14px;background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">📁 导入文件</button><button id="btn-clear-import" type="button" style="padding:6px 14px;background:#e67e22;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px" title="管理导入数据（查看/删除）">管理导入</button><button id="btn-custom" type="button" style="padding:6px 14px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">自定义</button></div></div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px"><h3 style="margin:0;line-height:36px">选择课程</h3><div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><div style="display:flex;gap:4px;align-items:center"><button id="btn-tab-imported" type="button" style="padding:5px 12px;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;background:#1a5fb4">📁 导入数据</button><button id="btn-tab-santao" type="button" style="padding:5px 12px;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;background:#aaa">🌐 抓取数据</button><button id="btn-custom" type="button" style="padding:5px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">✏️ 自定义</button></div><div id="import-actions-row" style="display:flex;gap:4px"><button id="btn-import-file" type="button" style="padding:5px 12px;background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">📁 导入文件</button><button id="btn-clear-import" type="button" style="padding:5px 12px;background:#e67e22;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">🗂️ 管理导入</button></div></div></div>' +
         '<div id="dropdown-section">' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">班型:</label><br><select id="classtype-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '<div id="grade-field" style="margin-bottom:10px"><label style="font-weight:600">年级:</label><br><select id="grade-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
@@ -62421,7 +62426,7 @@ async function saveCourseSelection() {
                 option_id: null,
                 custom_subject: santaoData.subject,
                 custom_chapter: santaoData.lesson + ' ' + santaoData.chapter,
-                custom_teacher: '三陶·' + classType + (santaoData.class_type ? '·' + santaoData.class_type : ''),
+                custom_teacher: '三陶',
                 custom_class_type: classType,
                 version: santaoData.version || null
             };
