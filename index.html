@@ -60822,8 +60822,9 @@ function showLogViewer() {
 function createStudentSelector() {
     var selector = document.createElement('div');
     selector.id = 'student-selector';
-    selector.style.cssText = 'position:fixed;top:10px;right:10px;z-index:1001;background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;align-items:center;gap:8px;font-size:13px;';
-    selector.innerHTML = '<span>👤</span><input id="student-search" type="text" placeholder="搜索..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:80px;"><select id="student-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;max-width:180px;"></select><button id="btn-add-student" style="padding:4px 8px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">+</button><button id="btn-del-student" style="padding:4px 8px;background:#c0392b;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">-</button><button id="btn-view-logs" style="padding:4px 8px;background:#666;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="查看日志">📋</button>';
+    selector.style.cssText = 'position:fixed;top:10px;right:10px;z-index:1001;background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;flex-direction:column;gap:6px;font-size:13px;';
+    selector.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><span>👤</span><input id="student-search" type="text" placeholder="搜索..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:80px;"><select id="student-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;max-width:180px;"></select><button id="btn-add-student" style="padding:4px 8px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">+</button><button id="btn-del-student" style="padding:4px 8px;background:#c0392b;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">-</button><button id="btn-view-logs" style="padding:4px 8px;background:#666;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="查看日志">📋</button></div>' +
+        '<div id="course-search-row" style="display:none;align-items:center;gap:6px"><span>📚</span><input id="global-course-search" type="text" placeholder="搜索课程..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;flex:1;min-width:120px;"><button id="btn-search-course" style="padding:4px 10px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">选课</button></div>';
     document.body.appendChild(selector);
     
     selector.querySelector('#student-select').addEventListener('change', function(e) {
@@ -60841,6 +60842,39 @@ function createStudentSelector() {
     selector.querySelector('#student-search').addEventListener('input', function(e) {
         filterStudentOptions(e.target.value);
     });
+    // Course search: show row when a cell is selected, open modal on click/enter
+    var searchBtn = selector.querySelector('#btn-search-course');
+    var searchInput = selector.querySelector('#global-course-search');
+    if (searchBtn) searchBtn.addEventListener('click', function() {
+        _openCourseSelectorWithSearch(searchInput ? searchInput.value : '');
+    });
+    if (searchInput) searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); _openCourseSelectorWithSearch(this.value); }
+    });
+}
+
+function _openCourseSelectorWithSearch(searchTerm) {
+    // Find a cell to edit - use last clicked or first empty
+    var cellId = window._lastClickedCellId || '';
+    if (!cellId) {
+        // Try to find first visible empty cell
+        var cells = document.querySelectorAll('.subject-cell');
+        for (var i = 0; i < cells.length; i++) {
+            var cid = cells[i].id.replace('cell-', '');
+            if (!cellSelections[cid]) { cellId = cid; break; }
+        }
+        if (!cellId && cells.length > 0) cellId = cells[0].id.replace('cell-', '');
+    }
+    if (!cellId) { alert('请先点击一个单元格'); return; }
+    showDetail(cellId);
+    // Set search term and trigger filter
+    setTimeout(function() {
+        var csInput = document.getElementById('course-search');
+        if (csInput && searchTerm) {
+            csInput.value = searchTerm;
+            refreshCourseList();
+        }
+    }, 100);
 }
 
 // ===== 加载所有数据 =====
@@ -60900,8 +60934,8 @@ async function loadAllData() {
                 if (!courseOptions[g][s]) courseOptions[g][s] = [];
                 courseOptions[g][s].push(item);
             });
-            // Merge Supabase imported data into IMPORTED_COURSE_OPTIONS
-            if (!window.IMPORTED_COURSE_OPTIONS) window.IMPORTED_COURSE_OPTIONS = {};
+            // Merge Supabase imported data into IMPORTED_COURSE_OPTIONS (clear first to avoid duplication)
+            window.IMPORTED_COURSE_OPTIONS = {};
             for (var _oi = 0; _oi < options.length; _oi++) {
                 var _item = options[_oi];
                 var _ct = _item.class_type || '导入班型';
@@ -61115,6 +61149,10 @@ function updateCellDisplayFromSelection(cellId, selection) {
 
 // ===== 单元格点击：选择课程 =====
 function showDetail(cellId) {
+    window._lastClickedCellId = cellId;
+    // Show course search row in student selector
+    var csRow = document.getElementById('course-search-row');
+    if (csRow) csRow.style.display = 'flex';
     var cell = document.getElementById('cell-' + cellId);
     if (!cell) return;
     
@@ -61236,8 +61274,8 @@ function refreshCourseFilterDropdowns() {
     var _cts = Object.keys(_ds).filter(function(ct) {
         return Object.keys(_ds[ct]).some(function(g) { return g === '通用' || _ag.indexOf(g) !== -1; });
     });
+    classTypeSelect.innerHTML = '';
     if (_cts.length > 0) {
-        classTypeSelect.innerHTML = '';
         _cts.forEach(function(ct) {
             var opt = document.createElement('option');
             opt.value = ct; opt.textContent = ct;
@@ -61245,6 +61283,12 @@ function refreshCourseFilterDropdowns() {
         });
         // Restore previous selection if still available
         if (_cts.indexOf(prevClassType) !== -1) classTypeSelect.value = prevClassType;
+    } else {
+        var emptyOpt = document.createElement('option');
+        emptyOpt.value = '';
+        emptyOpt.textContent = _activeDataSource === 'imported' ? '（暂无导入数据）' : '（无数据）';
+        emptyOpt.disabled = true;
+        classTypeSelect.appendChild(emptyOpt);
     }
     var classType = classTypeSelect.value;
     var prevSubject = document.getElementById('subject-select').value;
