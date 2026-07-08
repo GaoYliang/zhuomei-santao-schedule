@@ -60900,6 +60900,20 @@ async function loadAllData() {
                 if (!courseOptions[g][s]) courseOptions[g][s] = [];
                 courseOptions[g][s].push(item);
             });
+            // Merge Supabase imported data into IMPORTED_COURSE_OPTIONS
+            if (!window.IMPORTED_COURSE_OPTIONS) window.IMPORTED_COURSE_OPTIONS = {};
+            for (var _oi = 0; _oi < options.length; _oi++) {
+                var _item = options[_oi];
+                var _ct = _item.class_type || '导入班型';
+                var _g = _item.grade;
+                var _s = _item.subject;
+                if (!_ct) continue;
+                if (!window.IMPORTED_COURSE_OPTIONS[_ct]) window.IMPORTED_COURSE_OPTIONS[_ct] = {};
+                if (!window.IMPORTED_COURSE_OPTIONS[_ct][_g]) window.IMPORTED_COURSE_OPTIONS[_ct][_g] = {};
+                if (!window.IMPORTED_COURSE_OPTIONS[_ct][_g][_s]) window.IMPORTED_COURSE_OPTIONS[_ct][_g][_s] = [];
+                window.IMPORTED_COURSE_OPTIONS[_ct][_g][_s].push(_item);
+            }
+            console.log('[LOAD] Merged', options.length, 'courses from Supabase into IMPORTED_COURSE_OPTIONS');
         }
         
         // 合并三陶课程数据
@@ -61747,6 +61761,7 @@ function _autoImportExcelRows(fileName, rows) {
     var existing = window.IMPORTED_COURSE_OPTIONS[classType][grade][subject] || [];
     window.IMPORTED_COURSE_OPTIONS[classType][grade][subject] = existing.concat(courses);
     _saveImportedToStorage();
+    _saveImportedToSupabase();
 }
 
 function _mergeImportedData(parsed, sourceFile) {
@@ -61765,6 +61780,7 @@ function _mergeImportedData(parsed, sourceFile) {
         }
     }
     _saveImportedToStorage();
+    _saveImportedToSupabase();
 }
 
 function _saveImportedToStorage() {
@@ -61789,6 +61805,45 @@ function _saveImportedToStorage() {
         localStorage.setItem('imported_course_options_初中', JSON.stringify(jrData));
         localStorage.setItem('imported_course_options_高中', JSON.stringify(srData));
     } catch(err) {}
+}
+
+
+async function _saveImportedToSupabase() {
+    try {
+        // Delete existing imported course options
+        await supabaseClient.from('schedule_course_options').delete().neq('id', 0);
+        // Build flat array from IMPORTED_COURSE_OPTIONS
+        var all = window.IMPORTED_COURSE_OPTIONS || {};
+        var flatList = [];
+        for (var ct in all) {
+            if (ct === '_source') continue;
+            for (var g in all[ct]) {
+                if (g === '_source') continue;
+                for (var subj in all[ct][g]) {
+                    var courses = all[ct][g][subj] || [];
+                    for (var i = 0; i < courses.length; i++) {
+                        var c = courses[i];
+                        flatList.push({
+                            grade: g, subject: subj,
+                            lesson: c.lesson || '',
+                            chapter: c.chapter || '',
+                            content: c.content || '',
+                            key_points: c.key_points || '',
+                            teacher: c.teacher || '',
+                            class_type: ct
+                        });
+                    }
+                }
+            }
+        }
+        // Insert in batches of 100
+        for (var i = 0; i < flatList.length; i += 100) {
+            var batch = flatList.slice(i, i + 100);
+            var { error } = await supabaseClient.from('schedule_course_options').insert(batch);
+            if (error) { console.error('Supabase sync batch error:', error.message); }
+        }
+        console.log('[Supabase sync] Saved', flatList.length, 'imported courses');
+    } catch(e) { console.error('[Supabase sync error]', e); }
 }
 
 function showImportManager() {
@@ -61862,6 +61917,7 @@ function deleteImportSource(sourceName) {
     toDelete.forEach(function(ct) { delete all[ct]; });
     window.IMPORTED_COURSE_OPTIONS = all;
     _saveImportedToStorage();
+    _saveImportedToSupabase();
     
     var remaining = Object.keys(all).filter(function(k) { return k !== '_source'; });
     if (remaining.length === 0) {
@@ -61873,9 +61929,10 @@ function deleteImportSource(sourceName) {
     refreshCourseFilterDropdowns();
 }
 
-function deleteAllImported() {
+async function deleteAllImported() {
     if (!confirm('确定清空所有导入数据？')) return;
     window.IMPORTED_COURSE_OPTIONS = {};
+    try { await supabaseClient.from('schedule_course_options').delete().neq('id', 0); } catch(e) {}
     try { localStorage.removeItem('imported_course_options'); localStorage.removeItem('imported_course_options_初中'); localStorage.removeItem('imported_course_options_高中'); } catch(e) {}
     closeImportManager();
     switchDataSource('santao');
@@ -61921,6 +61978,7 @@ function _importJSON(file) {
                 localStorage.setItem('imported_course_options_初中', JSON.stringify(_jr));
                 localStorage.setItem('imported_course_options_高中', JSON.stringify(_sr));
             } catch(err) {}
+            _saveImportedToSupabase();
             updateImportPanel();
             switchDataSource('imported');
             alert('导入成功！');
@@ -62120,7 +62178,8 @@ function _showExcelConfigDialog(fileName, rows) {
                 lesson: '',
                 chapter: courseName,
                 teacher: teacher,
-                class_type: classType
+                class_type: classType,
+                subject: subject
             });
         }
 
@@ -62159,6 +62218,7 @@ function _showExcelConfigDialog(fileName, rows) {
             localStorage.setItem('imported_course_options_初中', JSON.stringify(jrData));
             localStorage.setItem('imported_course_options_高中', JSON.stringify(srData));
         } catch(err) {}
+        _saveImportedToSupabase();
         dlg.remove();
         switchDataSource('imported');
         alert('导入成功！' + classType + ' / ' + grade + ' / ' + subject + '\n新增 ' + courses.length + ' 条课程');
@@ -62191,9 +62251,10 @@ function exportImportedData() {
     a.click();
 }
 
-function clearImportedData() {
+async function clearImportedData() {
     if (!confirm('确定清空所有导入数据？')) return;
     window.IMPORTED_COURSE_OPTIONS = {};
+    try { await supabaseClient.from('schedule_course_options').delete().neq('id', 0); } catch(e) {}
     try { localStorage.removeItem('imported_course_options'); localStorage.removeItem('imported_course_options_初中'); localStorage.removeItem('imported_course_options_高中'); } catch(e) {}
     switchDataSource('santao');
 }
