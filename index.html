@@ -62417,23 +62417,6 @@ async function saveSelectionToCloud(selection) {
     }
     catch (e) { console.error('[SAVE] exception:', e); showToast('\u274c \u4fdd\u5b58\u5931\u8d25: ' + e.message); }
 }
-        
-        if (existing) {
-            await supabaseClient
-                .from('schedule_cell_courses_v2')
-                .update({
-                    option_id: selection.option_id,
-                    custom_chapter: selection.custom_chapter,
-                    custom_teacher: selection.custom_teacher,
-                    custom_class_type: selection.custom_class_type
-                })
-                .eq('id', existing.id);
-        } else {
-            var insertData={student_id:selection.student_id,cell_id:selection.cell_id,option_id:selection.option_id,custom_chapter:selection.custom_chapter,custom_teacher:selection.custom_teacher,custom_class_type:selection.custom_class_type};await supabaseClient.from('schedule_cell_courses_v2').insert(insertData);
-        }
-    }
-    catch (e) { console.error('保存失败:', e); showToast('❌ 保存失败: ' + e.message); }
-}
 
 // ===== Excel导入 =====
 function importExcel() {
