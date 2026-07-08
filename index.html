@@ -61086,6 +61086,7 @@ function updateCellDisplayFromSelection(cellId, selection) {
                         var chapterText = opts[i].chapter || '';
                         var lessonTitle = chapterText;
                         html = '<div class="subject-name">' + esc(lessonTitle) + '</div>';
+                        if (opts[i].version) html += '<div class="chapter-name" style="color:#1a5fb4;font-weight:600">📘 ' + esc(opts[i].version) + '</div>';
                         if (opts[i].teacher) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(opts[i].teacher) + '</div>';
                         if (opts[i].class_type) html += '<div class="chapter-name" style="color:#777">📋 ' + esc(opts[i].class_type) + '</div>';
                         break;
@@ -61095,6 +61096,7 @@ function updateCellDisplayFromSelection(cellId, selection) {
         }
     } else if (selection.custom_chapter) {
         html = '<div class="subject-name">' + esc(selection.custom_chapter) + '</div>';
+        if (selection.version) html += '<div class="chapter-name" style="color:#1a5fb4;font-weight:600">📘 ' + esc(selection.version) + '</div>';
         if (selection.custom_teacher) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(selection.custom_teacher) + '</div>';
         if (selection.custom_class_type) html += '<div class="chapter-name" style="color:#777">📋 ' + esc(selection.custom_class_type) + '</div>';
     }
@@ -61212,17 +61214,8 @@ function openCourseSelector(cellId, grade, subject) {
     }
 
 
-        // Set initial button states
-    var initBtn = document.getElementById('btn-import');
-    if (initBtn) {
-        if (_activeDataSource === 'imported') {
-            initBtn.textContent = '抓取数据';
-            initBtn.style.background = '#6c757d';
-        } else {
-            initBtn.textContent = '导入数据';
-            initBtn.style.background = '#28a745';
-        }
-    }
+    // Set initial tab button states
+    switchDataSource(_activeDataSource);
     // Clear search input when opening modal
     var courseSearchEl = document.getElementById('course-search');
     if (courseSearchEl) courseSearchEl.value = '';
@@ -61491,12 +61484,12 @@ function getActiveDataSource() {
         var all = window.IMPORTED_COURSE_OPTIONS || {};
         if (!currentGroupLevel) return all;
         var filtered = {};
-        var juniorGrades = ['初一','初二','初三','六年级','通用'];
-        var seniorGrades = ['高一','高二','高三','通用'];
+        var juniorGrades = ['初一','初二','初三','六年级'];
+        var seniorGrades = ['高一','高二','高三'];
         var allowedG = currentGroupLevel === '初中' ? juniorGrades : seniorGrades;
         for (var ct in all) {
             for (var g in all[ct]) {
-                if (g === '通用' || allowedG.indexOf(g) !== -1) {
+                if (allowedG.indexOf(g) !== -1) {
                     if (!filtered[ct]) filtered[ct] = {};
                     filtered[ct][g] = all[ct][g];
                 }
@@ -61513,17 +61506,22 @@ function switchDataSource(source) {
     window._cachedGradeData = null;
     window._cachedGradeMatters = null;
     window._cachedClassType = null;
-    // Update data source toggle button
-    var btnImport = document.getElementById('btn-import');
-    if (btnImport) {
-        if (source === 'imported') {
-            btnImport.textContent = '抓取数据';
-            btnImport.style.background = '#6c757d';
-        } else {
-            btnImport.textContent = '导入数据';
-            btnImport.style.background = '#28a745';
-        }
+    // Update tab-style buttons
+    var tabImported = document.getElementById('btn-tab-imported');
+    var tabSantao = document.getElementById('btn-tab-santao');
+    if (tabImported) {
+        tabImported.style.background = (source === 'imported') ? '#1a5fb4' : '#aaa';
+        tabImported.style.fontWeight = (source === 'imported') ? '700' : '400';
     }
+    if (tabSantao) {
+        tabSantao.style.background = (source === 'santao') ? '#1a5fb4' : '#aaa';
+        tabSantao.style.fontWeight = (source === 'santao') ? '700' : '400';
+    }
+    // Show/hide import-only buttons
+    var btnImportFile = document.getElementById('btn-import-file');
+    var btnClearImport = document.getElementById('btn-clear-import');
+    if (btnImportFile) btnImportFile.style.display = (source === 'imported') ? '' : 'none';
+    if (btnClearImport) btnClearImport.style.display = (source === 'imported') ? '' : 'none';
     // Rebuild dropdowns
     refreshCourseFilterDropdowns();
 }
@@ -61729,7 +61727,7 @@ function _autoImportExcelRows(fileName, rows) {
     // Detect class type and subject from filename
     var classType = '导入班型';
     var subject = '综合';
-    var grade = '通用';
+    var grade = (typeof currentGroupLevel !== 'undefined' && currentGroupLevel === '高中') ? '高一' : ((typeof currentGroupLevel !== 'undefined' && currentGroupLevel === '初中') ? '初一' : '通用');
     var nameLower = fileName.replace(/\.xlsx?$/i, '');
     var subjectList = ['语文','数学','英语','物理','化学','生物','政治','历史','地理'];
     for (var si = 0; si < subjectList.length; si++) {
@@ -61740,8 +61738,14 @@ function _autoImportExcelRows(fileName, rows) {
         if (nameLower.indexOf(gradeList[gi]) !== -1) { grade = gradeList[gi]; break; }
     }
     // Try to extract class type
-    var ctMatch = nameLower.match(/(同步启航|同步基础|同步进阶|高阶|考点闯关|实验班|普通班|冲刺班|强化班|提升班|基础班)/);
-    if (ctMatch) classType = ctMatch[1] + '班';
+    var version = '';
+    var ctMatch = nameLower.match(/(同步启航班|同步基础班|同步进阶班|同步高阶班|考点闯关班|专题精炼班|砍题班|数学青云班|初高衔接班|艺考课程|高职单招课|三陶习题课|物理突击班|数学专题课|小初衔接班|中考绝招班|考点习题课|习题课|同步启航|同步基础|同步进阶|高阶|考点闯关|实验班|普通班|冲刺班|强化班|提升班|基础班)/);
+    if (ctMatch) {
+        classType = ctMatch[1].endsWith('班') ? ctMatch[1] : ctMatch[1] + '班';
+        var afterCt = nameLower.substring(ctMatch.index + ctMatch[0].length);
+        var versionMatch = afterCt.match(/^(选修\d*|必修\d*|选择性必修\d*|[上下]册)/);
+        if (versionMatch) version = versionMatch[1];
+    }
     
     var courses = [];
     for (var ri = dataStartRow; ri < rows.length; ri++) {
@@ -61750,7 +61754,7 @@ function _autoImportExcelRows(fileName, rows) {
         var courseName = courseCol >= 0 ? String(row[courseCol] || '').trim() : '';
         var teacher = teacherCol >= 0 ? String(row[teacherCol] || '').trim() : '';
         if (!courseName) continue;
-        courses.push({ lesson: '', chapter: courseName, teacher: teacher, class_type: classType, _source: fileName });
+        courses.push({ lesson: '', chapter: courseName, teacher: teacher, class_type: classType, subject: subject, version: version, _source: fileName });
     }
     
     if (courses.length === 0) return;
@@ -61830,7 +61834,8 @@ async function _saveImportedToSupabase() {
                             content: c.content || '',
                             key_points: c.key_points || '',
                             teacher: c.teacher || '',
-                            class_type: ct
+                            class_type: ct,
+                            version: c.version || ''
                         });
                     }
                 }
@@ -62078,11 +62083,17 @@ function _showExcelConfigDialog(fileName, rows) {
     }
 
     // Auto-detect from filename
-    var ctFromName = '', subjFromName = '', gradeFromName = '通用';
+    var ctFromName = '', subjFromName = '', gradeFromName = (typeof currentGroupLevel !== 'undefined' && currentGroupLevel === '高中') ? '高一' : ((typeof currentGroupLevel !== 'undefined' && currentGroupLevel === '初中') ? '初一' : '通用');
+    var versionFromName = '';
     var fnBase = fileName.replace(/\.[^.]+$/, '');
     var ctPatterns = /(同步启航班|同步基础班|同步进阶班|同步高阶班|考点闯关班|专题精炼班|砍题班|数学青云班|初高衔接班|艺考课程|高职单招课|三陶习题课|物理突击班|数学专题课|小初衔接班|中考绝招班|考点习题课|习题课)/;
     var ctMatch = fnBase.match(ctPatterns);
-    if (ctMatch) ctFromName = ctMatch[1];
+    if (ctMatch) {
+        ctFromName = ctMatch[1];
+        var afterCt = fnBase.substring(ctMatch.index + ctMatch[0].length);
+        var versionMatch = afterCt.match(/^(选修\d*|必修\d*|选择性必修\d*|[上下]册)/);
+        if (versionMatch) versionFromName = versionMatch[1];
+    }
     var subjMatch = fnBase.match(/(数学|语文|英语|物理|化学|生物|历史|地理|政治)/);
     if (subjMatch) subjFromName = subjMatch[1];
     var gradeMap = {'高一':'高一','高二':'高二','高三':'高三','初一':'初一','初二':'初二','初三':'初三','高中':'高一'};
@@ -62126,6 +62137,7 @@ function _showExcelConfigDialog(fileName, rows) {
         '<div style="font-size:12px;font-weight:600;margin-bottom:4px">数据预览:</div>' + previewHTML +
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0">' +
         '<div><label style="font-weight:600;font-size:13px">班型:</label><br><input id="ec-classType" value="' + ctFromName + '" placeholder="如：考点闯关班" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box"></div>' +
+        '<div><label style="font-weight:600;font-size:13px">版本/册次:</label><br><input id="ec-version" value="' + versionFromName + '" placeholder="如：必修一、上册（选填）" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box"></div>' +
         '<div><label style="font-weight:600;font-size:13px">科目:</label><br><input id="ec-subject" value="' + subjFromName + '" placeholder="如：数学" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box"></div>' +
         '<div><label style="font-weight:600;font-size:13px">年级:</label><br><select id="ec-grade" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px">' +
         ['通用','高一','高二','高三','初一','初二','初三'].map(function(g) { return '<option' + (g===gradeFromName?' selected':'') + '>' + g + '</option>'; }).join('') +
@@ -62156,6 +62168,7 @@ function _showExcelConfigDialog(fileName, rows) {
 
     document.getElementById('ec-confirm').onclick = function() {
         var classType = document.getElementById('ec-classType').value.trim();
+        var version = document.getElementById('ec-version') ? document.getElementById('ec-version').value.trim() : '';
         var subject = document.getElementById('ec-subject').value.trim();
         var grade = document.getElementById('ec-grade').value;
         var startRow = parseInt(document.getElementById('ec-startRow').value) - 1;
@@ -62179,7 +62192,8 @@ function _showExcelConfigDialog(fileName, rows) {
                 chapter: courseName,
                 teacher: teacher,
                 class_type: classType,
-                subject: subject
+                subject: subject,
+                version: version
             });
         }
 
@@ -62267,7 +62281,7 @@ function createCourseSelectorModal() {
     modal.id = 'course-selector-modal';
     modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center;';
     modal.innerHTML = '<div style="background:#fff;padding:24px;border-radius:12px;max-width:520px;width:92%;max-height:85vh;overflow-y:auto;">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="margin:0">选择课程</h3><div style="display:flex;gap:8px"><button id="btn-import" type="button" style="padding:6px 14px;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px"></button><button id="btn-import-file" type="button" style="padding:6px 14px;background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">📁 导入文件</button><button id="btn-clear-import" type="button" style="padding:6px 14px;background:#e67e22;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px" title="管理导入数据（查看/删除）">管理导入</button><button id="btn-custom" type="button" style="padding:6px 14px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">自定义</button></div></div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="margin:0">选择课程</h3><div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span style="font-size:12px;color:#888;margin-right:4px">数据源:</span><button id="btn-tab-imported" type="button" style="padding:6px 14px;color:#fff;border:none;border-radius:4px 4px 0 0;cursor:pointer;font-size:13px;font-weight:600;background:#1a5fb4">📁 导入数据</button><button id="btn-tab-santao" type="button" style="padding:6px 14px;color:#fff;border:none;border-radius:4px 4px 0 0;cursor:pointer;font-size:13px;font-weight:600;background:#aaa">🌐 抓取数据</button><span style="width:1px;height:20px;background:#ddd;margin:0 4px"></span><button id="btn-import-file" type="button" style="padding:6px 14px;background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">📁 导入文件</button><button id="btn-clear-import" type="button" style="padding:6px 14px;background:#e67e22;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px" title="管理导入数据（查看/删除）">管理导入</button><button id="btn-custom" type="button" style="padding:6px 14px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">自定义</button></div></div>' +
         '<div id="dropdown-section">' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">班型:</label><br><select id="classtype-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '<div id="grade-field" style="margin-bottom:10px"><label style="font-weight:600">年级:</label><br><select id="grade-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
@@ -62296,13 +62310,13 @@ function createCourseSelectorModal() {
         e.preventDefault();
         closeCourseSelector();
     });
-    modal.querySelector('#btn-import').addEventListener('click', function(e) {
+    modal.querySelector('#btn-tab-imported').addEventListener('click', function(e) {
         e.preventDefault();
-        if (_activeDataSource === 'imported') {
-            switchDataSource('santao');
-        } else {
-            switchDataSource('imported');
-        }
+        switchDataSource('imported');
+    });
+    modal.querySelector('#btn-tab-santao').addEventListener('click', function(e) {
+        e.preventDefault();
+        switchDataSource('santao');
     });
     modal.querySelector('#btn-import-file').addEventListener('click', function(e) {
         e.preventDefault();
@@ -62408,7 +62422,8 @@ async function saveCourseSelection() {
                 custom_subject: santaoData.subject,
                 custom_chapter: santaoData.lesson + ' ' + santaoData.chapter,
                 custom_teacher: '三陶·' + classType + (santaoData.class_type ? '·' + santaoData.class_type : ''),
-                custom_class_type: classType
+                custom_class_type: classType,
+                version: santaoData.version || null
             };
             console.log('[SAVE-UI] santao selection:', JSON.stringify({sid: selection.student_id, cid: selection.cell_id, ch: selection.custom_chapter}));
             cellSelections[currentEditCellId] = selection;
@@ -62434,7 +62449,8 @@ async function saveCourseSelection() {
         custom_subject: subject || null,
         custom_chapter: customChapter || null,
         custom_teacher: customTeacher || null,
-        custom_class_type: customClassType || classType || null
+        custom_class_type: customClassType || classType || null,
+        version: null
     };
     console.log('[SAVE-UI] custom selection:', JSON.stringify({sid: selection.student_id, cid: selection.cell_id, ch: selection.custom_chapter}));
     cellSelections[currentEditCellId] = selection;
@@ -62471,9 +62487,11 @@ async function saveSelectionToCloud(selection) {
             student_id: selection.student_id,
             cell_id: selection.cell_id,
             option_id: selection.option_id,
+            custom_subject: selection.custom_subject || null,
             custom_chapter: selection.custom_chapter,
             custom_teacher: selection.custom_teacher,
-            custom_class_type: selection.custom_class_type
+            custom_class_type: selection.custom_class_type,
+            version: selection.version || null
         };
         console.log('[SAVE] data:', JSON.stringify(insertData));
         
@@ -62483,9 +62501,11 @@ async function saveSelectionToCloud(selection) {
                 .from('schedule_cell_courses_v2')
                 .update({
                     option_id: selection.option_id,
+                    custom_subject: selection.custom_subject || null,
                     custom_chapter: selection.custom_chapter,
                     custom_teacher: selection.custom_teacher,
-                    custom_class_type: selection.custom_class_type
+                    custom_class_type: selection.custom_class_type,
+                    version: selection.version || null
                 })
                 .eq('id', existing.id);
             if (updResult.error) {
