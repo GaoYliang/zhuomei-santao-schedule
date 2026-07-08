@@ -61052,7 +61052,15 @@ function updateCellDisplayFromSelection(cellId, selection) {
     var cd = document.getElementById('content-' + cellId);
     if (!cd) return;
     var cell = document.getElementById('cell-' + cellId);
-    var subject = cell ? (cell.getAttribute('data-subject') || '') : '';
+    var subject = selection.custom_subject || '';
+    // Set data-subject on cell so CSS [data-subject] rules also apply
+    if (cell) {
+        if (subject) {
+            cell.setAttribute('data-subject', subject);
+        } else {
+            cell.removeAttribute('data-subject');
+        }
+    }
     var html = '<div class="subject-name"></div>';
     
     if (selection.option_id && courseOptions) {
@@ -62295,6 +62303,9 @@ function clearCourseSelection() {
     
     // 重置单元格背景色为原始颜色
     restoreCellColor(currentEditCellId);
+    // 移除 data-subject 属性，避免 CSS 颜色规则继续生效
+    var clearedCell = document.getElementById('cell-' + currentEditCellId);
+    if (clearedCell) clearedCell.removeAttribute('data-subject');
     
     // 删除数据库记录
     (async function() {
