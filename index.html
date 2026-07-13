@@ -62881,7 +62881,7 @@ function createStudentSelector() {
     var selector = document.createElement('div');
     selector.id = 'student-selector';
     selector.style.cssText = 'position:fixed;top:10px;right:10px;z-index:1001;background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;align-items:center;gap:8px;font-size:13px;';
-    selector.innerHTML = '<span>👤</span><input id="student-search" type="text" placeholder="搜索..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:80px;"><select id="student-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;max-width:180px;"></select><button id="btn-add-student" style="padding:4px 8px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">+</button><button id="btn-del-student" style="padding:4px 8px;background:#c0392b;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">-</button><button id="btn-view-logs" style="padding:4px 8px;background:#666;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="查看日志">📋</button>';
+    selector.innerHTML = '<span>👤</span><input id="student-search" type="text" placeholder="搜索..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:80px;"><select id="student-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;max-width:180px;"></select><button id="btn-add-student" style="padding:4px 8px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">+</button><button id="btn-del-student" style="padding:4px 8px;background:#c0392b;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">-</button><button id="btn-view-logs" style="padding:4px 8px;background:#666;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="查看日志">📋</button><button id="btn-switch-group" style="padding:4px 8px;background:#8e44ad;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="切换分组">🔄</button>';
     document.body.appendChild(selector);
     
     selector.querySelector('#student-select').addEventListener('change', function(e) {
@@ -62895,6 +62895,9 @@ function createStudentSelector() {
     });
     selector.querySelector('#btn-view-logs').addEventListener('click', function() {
         showLogViewer();
+    });
+    selector.querySelector('#btn-switch-group').addEventListener('click', function() {
+        showGroupSwitcher();
     });
     selector.querySelector('#student-search').addEventListener('input', function(e) {
         filterStudentOptions(e.target.value);
