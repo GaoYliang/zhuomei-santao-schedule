@@ -62626,16 +62626,14 @@ async function saveSelectionToCloud(selection) {
             .eq('student_id', selection.student_id)
             .eq('cell_id', selection.cell_id)
             .maybeSingle();
-        
+
         if (queryErr) {
             console.error('[SAVE] query error:', queryErr.message);
             showToast('\u274c \u67e5\u8be2\u5931\u8d25: ' + queryErr.message);
             return;
         }
-        
-        var insertData = {
-            student_id: selection.student_id,
-            cell_id: selection.cell_id,
+
+        var fullData = {
             option_id: selection.option_id,
             custom_subject: selection.custom_subject || null,
             custom_chapter: selection.custom_chapter,
@@ -62643,21 +62641,25 @@ async function saveSelectionToCloud(selection) {
             custom_class_type: selection.custom_class_type,
             version: selection.version || null
         };
-        console.log('[SAVE] data:', JSON.stringify(insertData));
-        
+        var basicData = {
+            option_id: selection.option_id,
+            custom_chapter: selection.custom_chapter,
+            custom_teacher: selection.custom_teacher,
+            custom_class_type: selection.custom_class_type
+        };
+
         if (existing) {
             console.log('[SAVE] updating id=', existing.id);
             var updResult = await supabaseClient
                 .from('schedule_cell_courses_v2')
-                .update({
-                    option_id: selection.option_id,
-                    custom_subject: selection.custom_subject || null,
-                    custom_chapter: selection.custom_chapter,
-                    custom_teacher: selection.custom_teacher,
-                    custom_class_type: selection.custom_class_type,
-                    version: selection.version || null
-                })
+                .update(fullData)
                 .eq('id', existing.id);
+            if (updResult.error && updResult.error.message.indexOf('custom_subject') !== -1) {
+                updResult = await supabaseClient
+                    .from('schedule_cell_courses_v2')
+                    .update(basicData)
+                    .eq('id', existing.id);
+            }
             if (updResult.error) {
                 console.error('[SAVE] update error:', updResult.error.message);
                 showToast('\u274c \u66f4\u65b0\u5931\u8d25: ' + updResult.error.message);
@@ -62666,9 +62668,16 @@ async function saveSelectionToCloud(selection) {
             }
         } else {
             console.log('[SAVE] inserting new row');
+            var insertData = Object.assign({ student_id: selection.student_id, cell_id: selection.cell_id }, fullData);
             var insResult = await supabaseClient
                 .from('schedule_cell_courses_v2')
                 .insert(insertData);
+            if (insResult.error && insResult.error.message.indexOf('custom_subject') !== -1) {
+                var basicInsert = Object.assign({ student_id: selection.student_id, cell_id: selection.cell_id }, basicData);
+                insResult = await supabaseClient
+                    .from('schedule_cell_courses_v2')
+                    .insert(basicInsert);
+            }
             if (insResult.error) {
                 console.error('[SAVE] insert error:', insResult.error.message);
                 showToast('\u274c \u4fdd\u5b58\u5931\u8d25: ' + insResult.error.message);
