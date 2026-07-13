@@ -60911,8 +60911,17 @@ async function switchToGroup(gid) {
     }
     currentStudentId = null;
     currentStudentName = '';
-    currentGrade = '';
-    currentCombo = '默认';
+    // Set default grade/combo based on group level
+    if (currentGroupLevel === '初中') {
+        currentGrade = '初一';
+        currentCombo = '默认';
+    } else if (currentGroupLevel === '高中') {
+        currentGrade = '高一';
+        currentCombo = '物化生';
+    } else {
+        currentGrade = '高一';
+        currentCombo = '物化生';
+    }
     cellSelections = {};
     students = {};
     allStudents = [];
