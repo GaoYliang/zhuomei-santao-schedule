@@ -61230,7 +61230,24 @@ function updateCellDisplayFromSelection(cellId, selection) {
         html = '<div class="subject-name">' + esc(_chTitle) + '</div>';
         if (selection.version) html += '<div class="chapter-name" style="color:#1a5fb4;font-weight:600">📘 ' + esc(selection.version) + '</div>';
         var _tName = selection.custom_teacher || '';
-        if (_tName.indexOf('\u00b7') !== -1) _tName = _tName.split('\u00b7')[0];
+        if (_tName === '三陶' && selection.custom_chapter) {
+            var _allCt = window.IMPORTED_COURSE_OPTIONS || {};
+            _found: for (var _lct in _allCt) {
+                if (_lct === '_source') continue;
+                for (var _lg in _allCt[_lct]) {
+                    if (_lg === '_source') continue;
+                    for (var _ls in _allCt[_lct][_lg]) {
+                        var _lc = _allCt[_lct][_lg][_ls] || [];
+                        for (var _li = 0; _li < _lc.length; _li++) {
+                            if (_lc[_li].chapter && selection.custom_chapter.indexOf(_lc[_li].chapter) !== -1 && _lc[_li].teacher) {
+                                _tName = _lc[_li].teacher; break _found;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (_tName.indexOf('·') !== -1) _tName = _tName.split('·')[0];
         if (_tName) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(_tName) + '</div>';
         if (selection.custom_class_type) html += '<div class="chapter-name" style="color:#777">📋 ' + esc(selection.custom_class_type) + '</div>';
     }
