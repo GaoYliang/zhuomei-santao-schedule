@@ -62080,12 +62080,9 @@ async function deleteAllImported() {
     window.IMPORTED_COURSE_OPTIONS = {};
     _saveImportedToStorage();
     showToast('📡 正在清空数据...');
-    try {
-        var { error } = await supabaseClient.from('schedule_course_options').delete().neq('id', 0);
-        if (error) { console.error('[deleteAll] Supabase error:', error.message); showToast('❌ Supabase删除失败: ' + error.message); }
-        else { showToast('✅ 已清空所有导入数据'); }
-    } catch(e) { console.error('[deleteAll] exception:', e); showToast('❌ 清空失败: ' + e.message); }
+    await _saveImportedToSupabase();
     try { localStorage.removeItem('imported_course_options'); localStorage.removeItem('imported_course_options_初中'); localStorage.removeItem('imported_course_options_高中'); } catch(e) {}
+    showToast('✅ 已清空所有导入数据');
     closeImportManager();
     switchDataSource('santao');
     refreshCourseFilterDropdowns();
@@ -62417,12 +62414,9 @@ async function clearImportedData() {
     window.IMPORTED_COURSE_OPTIONS = {};
     _saveImportedToStorage();
     showToast('📡 正在清空数据...');
-    try {
-        var { error } = await supabaseClient.from('schedule_course_options').delete().neq('id', 0);
-        if (error) { console.error('[clearImported] Supabase error:', error.message); showToast('❌ Supabase删除失败: ' + error.message); }
-        else { showToast('✅ 已清空所有导入数据'); }
-    } catch(e) { console.error('[clearImported] exception:', e); }
+    await _saveImportedToSupabase();
     try { localStorage.removeItem('imported_course_options'); localStorage.removeItem('imported_course_options_初中'); localStorage.removeItem('imported_course_options_高中'); } catch(e) {}
+    showToast('✅ 已清空所有导入数据');
     switchDataSource('santao');
 }
 
