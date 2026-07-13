@@ -60823,7 +60823,7 @@ function createStudentSelector() {
     var selector = document.createElement('div');
     selector.id = 'student-selector';
     selector.style.cssText = 'position:fixed;top:10px;right:10px;z-index:1001;background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;flex-direction:column;gap:6px;font-size:13px;';
-    selector.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><span>👤</span><input id="student-search" type="text" placeholder="搜索..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:80px;"><select id="student-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;max-width:180px;"></select><button id="btn-add-student" style="padding:4px 8px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">+</button><button id="btn-del-student" style="padding:4px 8px;background:#c0392b;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">-</button><button id="btn-view-logs" style="padding:4px 8px;background:#666;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="查看日志">📋</button></div>' +
+    selector.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><span>👤</span><input id="student-search" type="text" placeholder="搜索..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:80px;"><select id="student-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;max-width:180px;"></select><button id="btn-add-student" style="padding:4px 8px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">+</button><button id="btn-del-student" style="padding:4px 8px;background:#c0392b;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">-</button><button id="btn-view-logs" style="padding:4px 8px;background:#666;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="查看日志">📋</button><button id="btn-switch-group" style="padding:4px 8px;background:#8e44ad;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="切换分组">🔄</button></div>' +
         '<div id="course-search-row" style="display:none;align-items:center;gap:6px"><span>📚</span><input id="global-course-search" type="text" placeholder="搜索课程..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;flex:1;min-width:120px;"><button id="btn-search-course" style="padding:4px 10px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">选课</button></div>';
     document.body.appendChild(selector);
     
@@ -60839,6 +60839,9 @@ function createStudentSelector() {
     selector.querySelector('#btn-view-logs').addEventListener('click', function() {
         showLogViewer();
     });
+    selector.querySelector('#btn-switch-group').addEventListener('click', function() {
+        showGroupSwitcher();
+    });
     selector.querySelector('#student-search').addEventListener('input', function(e) {
         filterStudentOptions(e.target.value);
     });
@@ -60851,6 +60854,85 @@ function createStudentSelector() {
     if (searchInput) searchInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') { e.preventDefault(); _openCourseSelectorWithSearch(this.value); }
     });
+}
+
+function showGroupSwitcher() {
+    var existing = document.getElementById('group-switcher-overlay');
+    if (existing) existing.remove();
+    var overlay = document.createElement('div');
+    overlay.id = 'group-switcher-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:3000;display:flex;align-items:center;justify-content:center;';
+    var html = '<div style="background:#fff;padding:24px;border-radius:12px;max-width:400px;width:90%;max-height:70vh;display:flex;flex-direction:column;">' +
+        '<h3 style="margin:0 0 12px;color:#1a3a5c;">🔄 切换分组</h3>' +
+        '<div style="color:#666;font-size:12px;margin-bottom:12px;">当前分组：<b>' + esc(currentGroupName || '无') + '</b>' + (currentGroupLevel ? ' (' + esc(currentGroupLevel) + ')' : '') + '</div>' +
+        '<div id="group-list-container" style="flex:1;overflow-y:auto;margin-bottom:16px;">';
+    for (var i = 0; i < allGroups.length; i++) {
+        var g = allGroups[i];
+        var isCurrent = g.id === currentGroupId;
+        var bg = isCurrent ? '#e8f0fe' : '#f8f9fa';
+        var border = isCurrent ? '2px solid #1a5fb4' : '1px solid #ddd';
+        var label = g.name + (g.level ? ' (' + g.level + ')' : '');
+        html += '<div class="group-switch-item" data-gid="' + g.id + '" style="padding:10px 14px;margin-bottom:6px;border-radius:6px;cursor:pointer;background:' + bg + ';border:' + border + ';font-size:14px;display:flex;align-items:center;justify-content:space-between;">' +
+            '<span>' + esc(label) + '</span>' +
+            (isCurrent ? '<span style="color:#1a5fb4;font-size:11px;font-weight:600;">✓ 当前</span>' : '') +
+            '</div>';
+    }
+    html += '</div>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+        '<button id="gs-new" style="padding:8px 16px;background:#27ae60;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;">+ 新建分组</button>' +
+        '<button id="gs-close" style="padding:8px 16px;background:#999;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;">关闭</button>' +
+        '</div></div>';
+    overlay.innerHTML = html;
+    document.body.appendChild(overlay);
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    overlay.querySelector('#gs-close').onclick = function() { overlay.remove(); };
+    overlay.querySelector('#gs-new').onclick = function() { overlay.remove(); createNewGroup(); };
+    overlay.querySelectorAll('.group-switch-item').forEach(function(item) {
+        item.onclick = function() {
+            var gid = parseInt(item.getAttribute('data-gid'));
+            if (gid === currentGroupId) { overlay.remove(); return; }
+            overlay.remove();
+            switchToGroup(gid);
+        };
+    });
+}
+
+async function switchToGroup(gid) {
+    showToast('🔄 正在切换分组...');
+    // Reset state
+    currentGroupId = gid;
+    currentGroupName = userGroups[gid] ? userGroups[gid].name : '';
+    currentGroupLevel = userGroups[gid] ? (userGroups[gid].level || '') : '';
+    if (!currentGroupLevel) {
+        try {
+            var lm = JSON.parse(localStorage.getItem('group_levels') || '{}');
+            currentGroupLevel = lm[gid] || '';
+        } catch(e) {}
+    }
+    currentStudentId = null;
+    currentStudentName = '';
+    currentGrade = '';
+    currentCombo = '默认';
+    cellSelections = {};
+    students = {};
+    allStudents = [];
+    courseOptions = {};
+    window.IMPORTED_COURSE_OPTIONS = {};
+    // Clear all cell displays
+    document.querySelectorAll('.subject-cell').forEach(function(cell) {
+        cell.innerHTML = '';
+        var cid = cell.id.replace('cell-', '');
+        restoreCellColor(cid);
+    });
+    // Reload everything for the new group
+    try {
+        await loadAllData();
+        restoreData();
+        updateLearningNotes();
+        showToast('✅ 已切换到: ' + currentGroupName);
+    } catch(e) {
+        showToast('❌ 切换失败: ' + e.message);
+    }
 }
 
 function _openCourseSelectorWithSearch(searchTerm) {
