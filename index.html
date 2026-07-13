@@ -61953,6 +61953,9 @@ function _saveImportedToStorage() {
 
 async function _saveImportedToSupabase() {
     try {
+        // Delete referencing rows from schedule_cell_courses first (foreign key constraint)
+        var { error: fkErr } = await supabaseClient.from('schedule_cell_courses').delete().neq('id', 0);
+        if (fkErr) { console.error('[Supabase sync] FK delete error:', fkErr.message); showToast('❌ 清除关联数据失败: ' + fkErr.message); return; }
         // Delete existing imported course options
         var { error: delErr } = await supabaseClient.from('schedule_course_options').delete().neq('id', 0);
         if (delErr) { console.error('[Supabase sync] delete error:', delErr.message); showToast('❌ 清除旧数据失败: ' + delErr.message); return; }
