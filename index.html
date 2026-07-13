@@ -60936,8 +60936,13 @@ async function switchToGroup(gid) {
     // Reload everything for the new group
     try {
         await loadAllData();
+        refreshView();
         restoreData();
         updateLearningNotes();
+        // Re-render cell selections
+        for (var _cid in cellSelections) {
+            updateCellDisplayFromSelection(_cid, cellSelections[_cid]);
+        }
         showToast('✅ 已切换到: ' + currentGroupName);
     } catch(e) {
         showToast('❌ 切换失败: ' + e.message);
@@ -61835,6 +61840,15 @@ function _importMultipleFiles(files) {
 }
 
 function _autoImportExcelRows(fileName, rows) {
+    // Check for duplicate import
+    var _all = window.IMPORTED_COURSE_OPTIONS || {};
+    for (var _ct in _all) {
+        if (_ct === '_source') continue;
+        if (_all[_ct]._source === fileName) {
+            console.log('[IMPORT] Duplicate file skipped:', fileName);
+            return;
+        }
+    }
     // Simplified auto-detect for batch import (uses same logic as _showExcelConfigDialog)
     var headerRow = null, dataStartRow = 1;
     var teacherKeywords = /老师|教师|主讲|讲师|授课/;
@@ -61900,6 +61914,7 @@ function _autoImportExcelRows(fileName, rows) {
     
     if (!window.IMPORTED_COURSE_OPTIONS) window.IMPORTED_COURSE_OPTIONS = {};
     if (!window.IMPORTED_COURSE_OPTIONS[classType]) window.IMPORTED_COURSE_OPTIONS[classType] = {};
+    window.IMPORTED_COURSE_OPTIONS[classType]._source = fileName;
     if (!window.IMPORTED_COURSE_OPTIONS[classType][grade]) window.IMPORTED_COURSE_OPTIONS[classType][grade] = {};
     var existing = window.IMPORTED_COURSE_OPTIONS[classType][grade][subject] || [];
     window.IMPORTED_COURSE_OPTIONS[classType][grade][subject] = existing.concat(courses);
@@ -62571,7 +62586,7 @@ async function saveCourseSelection() {
                 option_id: null,
                 custom_subject: santaoData.subject,
                 custom_chapter: santaoData.lesson + ' ' + santaoData.chapter,
-                custom_teacher: '三陶',
+                custom_teacher: teacher || '三陶',
                 custom_class_type: classType,
                 version: santaoData.version || null
             };
