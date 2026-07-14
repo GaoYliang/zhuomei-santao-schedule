@@ -80,14 +80,14 @@ body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; backgro
 .schedule-table td { padding: 2px 1px; text-align: center; border-right: 1px solid #eaeef3; border-bottom: 1px solid #eaeef3; vertical-align: middle; }
 .schedule-table td:first-child { background: #f8fafc; font-weight: 600; color: #555; font-size: 13px; }
 
-.subject-cell { position: relative; border-radius: 6px; padding: 6px 4px; min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.15s; cursor: pointer; }
+.subject-cell { position: relative; border-radius: 6px; padding: 4px 3px; min-height: 48px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; transition: all 0.15s; cursor: pointer; }
 .subject-cell:hover { box-shadow: 0 0 0 2px #1a5fb4; z-index: 5; }
 .subject-cell:hover .cell-actions { opacity: 1; visibility: visible; }
 .cell-actions { position: absolute; top: 1px; right: 1px; display: flex; gap: 1px; opacity: 0; visibility: hidden; transition: opacity 0.15s; z-index: 10; }
 .check-btn, .edit-btn { width: 16px; height: 16px; border-radius: 50%; border: 1px solid #1a5fb4; background: rgba(255,255,255,0.95); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #1a5fb4; padding: 0; line-height: 1; }
 .check-btn:hover, .edit-btn:hover { background: #1a5fb4; color: #fff; }
 .check-btn.checked { background: #1a5fb4; color: #fff; border-color: #1a5fb4; }
-.cell-content { width: 100%; text-align: center; font-size: 12px; line-height: 1.3; pointer-events: none; }
+.cell-content { width: 100%; text-align: center; font-size: 12px; line-height: 1.3; pointer-events: auto; flex: 1; overflow-y: auto; }
 .cell-content .subject-name { font-weight: 600; font-size: 13px; }
 .cell-content .chapter-name { font-size: 11px; color: #666; }
 .subject-cell.completed { opacity: 0.4; }
@@ -100,6 +100,7 @@ body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; backgro
 .subject-cell.completed[data-subject="政治"] { background: #ffd0e0 !important; }
 .subject-cell.completed[data-subject="公休"] { background: #e0e0e0 !important; }
 .subject-cell.completed .cell-content { text-decoration: line-through; color: #999; }
+.sub-course-card{display:flex;align-items:flex-start;gap:3px;padding:2px 3px;margin-bottom:2px;border-radius:3px;background:rgba(255,255,255,0.6);font-size:11px;cursor:pointer;position:relative;text-align:left;width:100%}.sub-course-card:hover{background:rgba(255,255,255,0.95);box-shadow:0 1px 3px rgba(0,0,0,0.15)}.cell-tooltip{position:fixed;z-index:9999;background:#fff;border:1px solid #d0d8e0;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.15);padding:10px 12px;max-width:280px;min-width:160px;pointer-events:auto;opacity:0;transition:opacity 0.15s}.cell-tooltip.show{opacity:1}.cell-tooltip .tip-title{font-size:13px;font-weight:700;margin-bottom:6px;color:#1a3a5c;border-bottom:1px solid #eee;padding-bottom:4px}.cell-tooltip .tip-card{display:flex;gap:6px;align-items:flex-start;padding:4px 0;border-bottom:1px solid #f0f0f0}.cell-tooltip .tip-card:last-child{border-bottom:none}.cell-tooltip .tip-bar{width:3px;min-height:20px;border-radius:2px;flex-shrink:0}.cell-tooltip .tip-info{flex:1;min-width:0}.cell-tooltip .tip-subj{font-size:12px;font-weight:600}.cell-tooltip .tip-detail{font-size:11px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cell-tooltip .tip-card{position:relative;padding-right:40px}.cell-tooltip .tip-actions{position:absolute;top:4px;right:0;display:flex;gap:2px}.cell-tooltip .tip-btn{width:20px;height:20px;border:1px solid #ccc;border-radius:50%;background:#fff;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0;color:#888}.cell-tooltip .tip-btn:hover{background:#1a5fb4;color:#fff;border-color:#1a5fb4}.cell-tooltip .tip-btn.tip-check{border-color:#1a5fb4;color:#1a5fb4}.cell-tooltip .tip-btn.tip-check.done{background:#1a5fb4;color:#fff}.cell-tooltip .tip-btn.tip-del:hover{background:#e74c3c;border-color:#e74c3c}.sub-card-body{flex:1;min-width:0;overflow:hidden}.sub-card-body .subject-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sub-card-body .chapter-name{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sub-card-del{width:14px;height:14px;border:none;background:rgba(0,0,0,0.1);border-radius:50%;font-size:9px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#999;padding:0;line-height:1}.sub-card-del:hover{background:#e74c3c;color:#fff}.cell-add-btn{width:100%;padding:2px;border:1px dashed #bbb;border-radius:3px;background:rgba(255,255,255,0.3);color:#999;font-size:11px;cursor:pointer;text-align:center;margin-top:1px}.cell-add-btn:hover{background:rgba(26,95,180,0.1);border-color:#1a5fb4;color:#1a5fb4}.subject-cell .cell-actions .edit-btn{display:none}
 .rest-row td { background: #f8fafc !important; color: #888; font-style: italic; font-size: 13px; }
 
 /* 进度条 */
@@ -60444,6 +60445,7 @@ var currentPhase = '第一期';
 var currentGrade = '高一';
 var currentCombo = '物化生';
 var currentEditCellId = null;
+var currentEditSubIndex = -1;
 var currentStudentId = null;
 var currentStudentName = '';
 var currentGroupId = null;
@@ -60630,20 +60632,44 @@ function createNewGroup() {
         try {
             // Try with level column first
             var newGroup = null;
+            var insertName = name;
+            var suffix = 1;
             var { data, error } = await supabaseClient
                 .from('user_groups')
-                .insert({ name: name, level: level })
+                .insert({ name: insertName, level: level })
                 .select().single();
+            while (error && (error.code === '23505' || (error.message && error.message.indexOf('duplicate') !== -1))) {
+                suffix++;
+                insertName = name + ' (' + suffix + ')';
+                var retry = await supabaseClient
+                    .from('user_groups')
+                    .insert({ name: insertName, level: level })
+                    .select().single();
+                data = retry.data;
+                error = retry.error;
+            }
             if (error) {
-                // Fallback: insert without level
+                // Fallback: insert without level, also with retry
                 var result2 = await supabaseClient
                     .from('user_groups')
-                    .insert({ name: name })
+                    .insert({ name: insertName })
                     .select().single();
+                while (result2.error && (result2.error.code === '23505' || (result2.error.message && result2.error.message.indexOf('duplicate') !== -1))) {
+                    suffix++;
+                    insertName = name + ' (' + suffix + ')';
+                    result2 = await supabaseClient
+                        .from('user_groups')
+                        .insert({ name: insertName })
+                        .select().single();
+                }
+                if (result2.error) {
+                    alert('创建分组失败: ' + result2.error.message);
+                    return;
+                }
                 newGroup = result2.data;
                 if (newGroup) {
                     newGroup.level = level;
-                    // Store level mapping locally
+                    newGroup.name = insertName;
                     try {
                         var levelMap = JSON.parse(localStorage.getItem('group_levels') || '{}');
                         levelMap[newGroup.id] = level;
@@ -60652,18 +60678,22 @@ function createNewGroup() {
                 }
             } else {
                 newGroup = data;
+                if (newGroup && insertName !== name) newGroup.name = insertName;
             }
             if (newGroup) {
                 allGroups.push(newGroup);
                 userGroups[newGroup.id] = newGroup;
+                // Update login group select if it exists
                 var select = document.getElementById('login-group');
-                var opt = document.createElement('option');
-                opt.value = newGroup.id;
-                opt.textContent = name + ' (' + level + ')';
-                select.appendChild(opt);
-                select.value = newGroup.id;
+                if (select) {
+                    var opt = document.createElement('option');
+                    opt.value = newGroup.id;
+                    opt.textContent = name + ' (' + level + ')';
+                    select.appendChild(opt);
+                    select.value = newGroup.id;
+                }
                 dlg.remove();
-                alert('分组 [' + name + '] 已创建');
+                alert('分组 [' + name + '] 已创建，请刷新页面后切换使用');
             }
         } catch (e) { alert('创建分组失败: ' + e.message); }
     };
@@ -60823,7 +60853,7 @@ function createStudentSelector() {
     var selector = document.createElement('div');
     selector.id = 'student-selector';
     selector.style.cssText = 'position:fixed;top:10px;right:10px;z-index:1001;background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;flex-direction:column;gap:6px;font-size:13px;';
-    selector.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><span>👤</span><input id="student-search" type="text" placeholder="搜索..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:80px;"><select id="student-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;max-width:180px;"></select><button id="btn-add-student" style="padding:4px 8px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">+</button><button id="btn-del-student" style="padding:4px 8px;background:#c0392b;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">-</button><button id="btn-view-logs" style="padding:4px 8px;background:#666;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="查看日志">📋</button><button id="btn-switch-group" style="padding:4px 8px;background:#8e44ad;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="切换分组">🔄</button></div>' +
+    selector.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><span>👤</span><input id="student-search" type="text" placeholder="搜索..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:80px;"><select id="student-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;max-width:180px;"></select><button id="btn-add-student" style="padding:4px 8px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">+</button><button id="btn-del-student" style="padding:4px 8px;background:#c0392b;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">-</button><button id="btn-edit-student" style="padding:4px 8px;background:#e67e22;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="编辑学生信息">✏</button><button id="btn-view-logs" style="padding:4px 8px;background:#666;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="查看日志">📋</button><button id="btn-switch-group" style="padding:4px 8px;background:#8e44ad;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="切换分组">🔄</button></div>' +
         '<div id="course-search-row" style="display:none;align-items:center;gap:6px"><span>📚</span><input id="global-course-search" type="text" placeholder="搜索课程..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;flex:1;min-width:120px;"><button id="btn-search-course" style="padding:4px 10px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">选课</button></div>';
     document.body.appendChild(selector);
     
@@ -60835,6 +60865,10 @@ function createStudentSelector() {
     });
     selector.querySelector('#btn-del-student').addEventListener('click', function() {
         deleteStudent();
+    });
+    var editBtn = selector.querySelector('#btn-edit-student');
+    if (editBtn) editBtn.addEventListener('click', function() {
+        editStudent();
     });
     selector.querySelector('#btn-view-logs').addEventListener('click', function() {
         showLogViewer();
@@ -61038,9 +61072,14 @@ async function loadAllData() {
                 var _g = _item.grade;
                 var _s = _item.subject;
                 if (!_ct) continue;
-                if (!window.IMPORTED_COURSE_OPTIONS[_ct]) window.IMPORTED_COURSE_OPTIONS[_ct] = {};
+                if (!window.IMPORTED_COURSE_OPTIONS[_ct]) {
+                    window.IMPORTED_COURSE_OPTIONS[_ct] = {};
+                    window.IMPORTED_COURSE_OPTIONS[_ct]._source = _item.content || '';
+                }
                 if (!window.IMPORTED_COURSE_OPTIONS[_ct][_g]) window.IMPORTED_COURSE_OPTIONS[_ct][_g] = {};
                 if (!window.IMPORTED_COURSE_OPTIONS[_ct][_g][_s]) window.IMPORTED_COURSE_OPTIONS[_ct][_g][_s] = [];
+                _item._source = _item.content || '';
+                _item._source = _item.content || '';
                 window.IMPORTED_COURSE_OPTIONS[_ct][_g][_s].push(_item);
             }
             console.log('[LOAD] Merged', options.length, 'courses from Supabase into IMPORTED_COURSE_OPTIONS');
@@ -61191,76 +61230,159 @@ var subjectColors = {
     '地理': '#9fa8da',
     '公休': '#d0d0d0'
 };
+// === Cell tooltip (event delegation) ===
+(function() {
+    var _tipEl = document.createElement("div");
+    _tipEl.className = "cell-tooltip";
+    document.body.appendChild(_tipEl);
+    var _tipTimer = null;
+    function _hideTip() { _tipEl.classList.remove("show"); _tipEl._cid = null; }
+    function _showTip(cell) {
+        var cid = cell.id.replace("cell-", "");
+        _tipEl._cid = cell.id;
+        var arr = cellSelections[cid] || [];
+        if (!Array.isArray(arr) || arr.length === 0) return;
+        var h = "<div class=\"tip-title\">" + arr.length + " \u8282\u8bfe\u7a0b</div>";
+        for (var i = 0; i < arr.length; i++) {
+            var sel = arr[i], subj = sel.custom_subject || "";
+            var bc = subjectColors[subj] || "#ccc";
+            var ch = (sel.custom_chapter || "").replace(/^\d+[.\u3001\s]+\s*/, "");
+            var tc = sel.custom_teacher || "", vt = sel.version || "";
+            var isDone = sel.is_done ? " done" : "";
+            h += "<div class=\"tip-card\"><div class=\"tip-bar\" style=\"background:" + bc + "\"></div>";
+            h += "<div class=\"tip-info\"><div class=\"tip-subj\">" + esc(subj || "\u672a\u547d\u540d") + "</div>";
+            if (ch) h += "<div class=\"tip-detail\">" + esc(ch) + "</div>";
+            if (tc && tc !== "\u4e09\u9676") h += "<div class=\"tip-detail\">\ud83d\udc64 " + esc(tc) + "</div>";
+            if (vt) h += "<div class=\"tip-detail\">\ud83d\udcd8 " + esc(vt) + "</div>";
+            h += "</div>";
+            h += "<div class=\"tip-actions\">";
+            h += "<button class=\"tip-btn tip-check" + isDone + "\" onclick=\"_tipToggleDone(\x27" + cid + "\x27," + i + ")\">" + (sel.is_done ? "\u2713" : "\u2713") + "</button>";
+            h += "<button class=\"tip-btn\" onclick=\"_tipEdit(\x27" + cid + "\x27," + i + ")\" title=\"\u7f16\u8f91\">\u270f</button>";
+            h += "<button class=\"tip-btn tip-del\" onclick=\"_tipDelete(\x27" + cid + "\x27," + i + ")\" title=\"\u5220\u9664\">\u00d7</button>";
+            h += "</div></div>";
+        }
+        _tipEl.innerHTML = h;
+        var rect = cell.getBoundingClientRect();
+        var left = rect.right + 8;
+        if (left + 280 > window.innerWidth) left = rect.left - 288;
+        var top = rect.top;
+        if (top + 200 > window.innerHeight) top = window.innerHeight - 210;
+        _tipEl.style.left = left + "px";
+        _tipEl.style.top = top + "px";
+        _tipEl.classList.add("show");
+    }
+    // Global functions for tooltip button clicks
+    window._tipToggleDone = function(cid, idx) {
+        var arr = cellSelections[cid]; if (!arr || !arr[idx]) return;
+        arr[idx].is_done = !arr[idx].is_done;
+        (async function() { try { await saveSelectionToCloud(arr[idx]); } catch(e) {} })();
+        var cell = document.getElementById("cell-" + cid);
+        if (cell) _showTip(cell);
+        updateProgress("panel-" + currentPhase + "-" + currentGrade + "-" + currentCombo);
+    };
+    window._tipEdit = function(cid, idx) {
+        _hideTip();
+        var cell = document.getElementById("cell-" + cid);
+        var grade = cid.split("-")[1] || "";
+        openCourseSelector(cid, grade, null, idx);
+    };
+    window._tipDelete = function(cid, idx) {
+        _hideTip();
+        deleteSubCourse(cid, idx);
+    };
+    document.addEventListener("mouseover", function(e) {
+        var inTip = _tipEl.contains(e.target);
+        var cell = e.target.closest ? e.target.closest(".subject-cell") : null;
+        if (inTip) { clearTimeout(_tipTimer); return; }
+        if (!cell) { clearTimeout(_tipTimer); _tipTimer = setTimeout(_hideTip, 150); return; }
+        var cd = cell.querySelector(".cell-content");
+        var cards = cd ? cd.querySelectorAll(".sub-course-card") : [];
+        if (cards.length === 0) { clearTimeout(_tipTimer); _tipTimer = setTimeout(_hideTip, 150); return; }
+        if (_tipEl._cid === cell.id && _tipEl.classList.contains("show")) return;
+        clearTimeout(_tipTimer);
+        _showTip(cell);
+    });
+    document.addEventListener("mouseout", function(e) {
+        var inTip = _tipEl.contains(e.target) || _tipEl.contains(e.relatedTarget);
+        var cell = e.target.closest ? e.target.closest(".subject-cell") : null;
+        var toCell = e.relatedTarget && e.relatedTarget.closest ? e.relatedTarget.closest(".subject-cell") : null;
+        if (inTip) return;
+        if (toCell) return;
+        clearTimeout(_tipTimer);
+        _tipTimer = setTimeout(_hideTip, 150);
+    });
+})();
 
-function updateCellDisplayFromSelection(cellId, selection) {
-    var cd = document.getElementById('content-' + cellId);
-    if (!cd) return;
-    var cell = document.getElementById('cell-' + cellId);
-    var subject = selection.custom_subject || '';
-    // Set data-subject on cell so CSS [data-subject] rules also apply
+function updateCellDisplayFromSelection(cellId) {
+    var cd = document.getElementById("content-" + cellId); if (!cd) return;
+    var cell = document.getElementById("cell-" + cellId);
+    var arr = cellSelections[cellId] || []; if (!Array.isArray(arr)) arr = [arr];
+    if (arr.length === 0) { var Q0=String.fromCharCode(39); cd.innerHTML = "<div class=\"cell-add-btn\" onclick=\"event.stopPropagation();openCourseSelector("+Q0+cellId+Q0+",null,null,-1)\">\uff0b\u6dfb\u52a0</div>"; if(cell){cell.removeAttribute("data-subject");restoreCellColor(cellId);} return; }
+    var Q = String.fromCharCode(39), sel = arr[0];
+    var subj = sel.custom_subject || "", barColor = subjectColors[subj] || "#ccc";
+    var chTitle = "", tTxt = "", vTxt = "";
+    if (sel.option_id && courseOptions) {
+        for (var g in courseOptions) { for (var s in courseOptions[g]) {
+            var opts = courseOptions[g][s]; for (var j = 0; j < opts.length; j++) {
+                if (opts[j].id === sel.option_id) { chTitle=opts[j].chapter||""; tTxt=opts[j].teacher||""; vTxt=opts[j].version||""; if(!subj)subj=s; break; }
+            } } }
+    } else if (sel.custom_chapter) {
+        chTitle = sel.custom_chapter.replace(/^\d+[.\u3001\s]+\s*/, "");
+        tTxt = sel.custom_teacher || "";
+        if (tTxt === "\u4e09\u9676" && sel.custom_chapter) {
+            var _a=window.IMPORTED_COURSE_OPTIONS||{};
+            _f:for(var _t in _a){if(_t==="_source")continue;for(var _g in _a[_t]){if(_g==="_source")continue;
+            for(var _s in _a[_t][_g]){var _c=_a[_t][_g][_s]||[];for(var _i=0;_i<_c.length;_i++){
+            if(_c[_i].chapter&&sel.custom_chapter.indexOf(_c[_i].chapter)!==-1&&_c[_i].teacher){tTxt=_c[_i].teacher;break _f;}}}}}
+        }
+        if(tTxt.indexOf("\u00b7")!==-1)tTxt=tTxt.split("\u00b7")[0];
+        vTxt = sel.version || "";
+    }
+    var h = "";
+    h += "<div class=\"sub-course-card\" style=\"border-left:3px solid " + barColor + "\">";
+    h += "<div class=\"sub-card-body\"><div class=\"subject-name\">" + esc(subj || chTitle || "\u672a\u547d\u540d") + "</div>";
+    if (chTitle && chTitle !== (subj || "\u672a\u547d\u540d")) h += "<div class=\"chapter-name\">" + esc(chTitle) + "</div>";
+    if (tTxt) h += "<div class=\"chapter-name\" style=\"color:#666\">\ud83d\udc64 " + esc(tTxt) + "</div>";
+    if (vTxt) h += "<div class=\"chapter-name\" style=\"color:#1a5fb4\">\ud83d\udcd8 " + esc(vTxt) + "</div>";
+    h += "</div></div>";
+    if (arr.length > 1) h += "<div style=\"text-align:center;font-size:10px;color:#1a5fb4;font-weight:600;margin-top:1px\">+" + (arr.length - 1) + " \u66f4\u591a</div>";
+    // Inject add button into cell-actions (next to checkmark)
     if (cell) {
-        if (subject) {
-            cell.setAttribute('data-subject', subject);
-        } else {
-            cell.removeAttribute('data-subject');
+        var actDiv = cell.querySelector(".cell-actions");
+        if (actDiv) {
+            var oldAdd = actDiv.querySelector(".cell-add-action");
+            if (oldAdd) oldAdd.remove();
+            var addBtn = document.createElement("button");
+            addBtn.type = "button";
+            addBtn.className = "check-btn cell-add-action";
+            addBtn.title = "\u6dfb\u52a0\u8bfe\u7a0b";
+            addBtn.innerHTML = "+";
+            addBtn.onclick = function(ev) { ev.stopPropagation(); openCourseSelector(cellId, null, null, -1); };
+            actDiv.insertBefore(addBtn, actDiv.firstChild);
         }
     }
-    var html = '<div class="subject-name"></div>';
-    
-    if (selection.option_id && courseOptions) {
-        for (var g in courseOptions) {
-            for (var s in courseOptions[g]) {
-                var opts = courseOptions[g][s];
-                for (var i = 0; i < opts.length; i++) {
-                    if (opts[i].id === selection.option_id) {
-                        var chapterText = opts[i].chapter || '';
-                        var lessonTitle = chapterText;
-                        html = '<div class="subject-name">' + esc(lessonTitle) + '</div>';
-                        if (opts[i].version) html += '<div class="chapter-name" style="color:#1a5fb4;font-weight:600">📘 ' + esc(opts[i].version) + '</div>';
-                        if (opts[i].teacher) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(opts[i].teacher) + '</div>';
-                        if (opts[i].class_type) html += '<div class="chapter-name" style="color:#777">📋 ' + esc(opts[i].class_type) + '</div>';
-                        break;
-                    }
-                }
-            }
-        }
-    } else if (selection.custom_chapter) {
-        var _chTitle = selection.custom_chapter;
-        _chTitle = _chTitle.replace(/^\d+[.\u3001\s]+\s*/, '');
-        html = '<div class="subject-name">' + esc(_chTitle) + '</div>';
-        if (selection.version) html += '<div class="chapter-name" style="color:#1a5fb4;font-weight:600">📘 ' + esc(selection.version) + '</div>';
-        var _tName = selection.custom_teacher || '';
-        if (_tName === '三陶' && selection.custom_chapter) {
-            var _allCt = window.IMPORTED_COURSE_OPTIONS || {};
-            _found: for (var _lct in _allCt) {
-                if (_lct === '_source') continue;
-                for (var _lg in _allCt[_lct]) {
-                    if (_lg === '_source') continue;
-                    for (var _ls in _allCt[_lct][_lg]) {
-                        var _lc = _allCt[_lct][_lg][_ls] || [];
-                        for (var _li = 0; _li < _lc.length; _li++) {
-                            if (_lc[_li].chapter && selection.custom_chapter.indexOf(_lc[_li].chapter) !== -1 && _lc[_li].teacher) {
-                                _tName = _lc[_li].teacher; break _found;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (_tName.indexOf('·') !== -1) _tName = _tName.split('·')[0];
-        if (_tName) html += '<div class="chapter-name" style="color:#555">👤 ' + esc(_tName) + '</div>';
-        if (selection.custom_class_type) html += '<div class="chapter-name" style="color:#777">📋 ' + esc(selection.custom_class_type) + '</div>';
-    }
-    cd.innerHTML = html;
-    
-    // 设置单元格背景色
-    if (cell && subject) {
-        var bgColor = subjectColors[subject];
-        if (bgColor) cell.style.background = bgColor;
-    }
+    cd.innerHTML = h;
+    if(cell){if(subj){cell.setAttribute("data-subject",subj);var bg=subjectColors[subj];if(bg)cell.style.background=bg;}
+    else{cell.removeAttribute("data-subject");restoreCellColor(cellId);}}
+    // Mark cell completed if all sub-courses are done
+    if(cell&&arr.length>0){var allDone=arr.every(function(s){return s.is_done;});if(allDone)cell.classList.add("completed");else cell.classList.remove("completed");}
 }
 
 // ===== 单元格点击：选择课程 =====
+function deleteSubCourse(cellId,subIndex){
+if(!confirm("\u786e\u5b9a\u5220\u9664\u8fd9\u8282\u8bfe\uff1f"))return;
+var arr=cellSelections[cellId];if(!Array.isArray(arr))return;
+arr.splice(subIndex,1);for(var r=0;r<arr.length;r++)arr[r].sub_index=r;
+if(arr.length===0){delete cellSelections[cellId];
+var cd=document.getElementById("content-"+cellId);var Q=String.fromCharCode(39);
+if(cd)cd.innerHTML="<div class=\"cell-add-btn\" onclick=\"event.stopPropagation();openCourseSelector("+Q+cellId+Q+",null,null,-1)\">\uff0b\u6dfb\u52a0</div>";
+restoreCellColor(cellId);var ce=document.getElementById("cell-"+cellId);if(ce)ce.removeAttribute("data-subject");
+}else{updateCellDisplayFromSelection(cellId);}
+(async function(){try{await supabaseClient.from("schedule_cell_courses_v2").delete().eq("student_id",currentStudentId).eq("cell_id",cellId);
+var rem=cellSelections[cellId]||[];for(var r=0;r<rem.length;r++)await saveSelectionToCloud(rem[r]);
+}catch(e){console.error("del err:",e);}})();
+updateProgress("panel-"+currentPhase+"-"+currentGrade+"-"+currentCombo);showToast("\u5df2\u5220\u9664");}
+
 function showDetail(cellId) {
     window._lastClickedCellId = cellId;
     // Show course search row in student selector
@@ -61278,17 +61400,19 @@ function showDetail(cellId) {
     
     var parts = cellId.split('-');
     var grade = parts[1];
-    openCourseSelector(cellId, grade, subject);
+    openCourseSelector(cellId, grade, subject, -1);
 }
 
-function openCourseSelector(cellId, grade, subject) {
+function openCourseSelector(cellId, grade, subject, subIndex) {
     currentEditCellId = cellId;
+    currentEditSubIndex = (typeof subIndex === "number" && subIndex >= 0) ? subIndex : -1;
     var modal = document.getElementById('course-selector-modal');
     if (!modal) {
         modal = createCourseSelectorModal();
         document.body.appendChild(modal);
     }
 
+    if (!grade) { var _cp = cellId.split("-"); grade = _cp[1] || ""; }
     // Detect school level from the cell's grade
     var juniorGrades = ['初一', '初二', '初三', '六年级', '通用'];
     var seniorGrades = ['高一', '高二', '高三'];
@@ -61347,7 +61471,7 @@ function openCourseSelector(cellId, grade, subject) {
     var teacherSelect = document.getElementById('teacher-select');
     teacherSelect.onchange = function() { refreshCourseList(); };
     var versionSelect = document.getElementById('version-select');
-    versionSelect.onchange = function() { refreshCourseList(); };
+    if (versionSelect) versionSelect.onchange = function() { refreshCourseList(); };
     var moduleSelect = document.getElementById('module-select');
     moduleSelect.onchange = function() { updateModuleTeacherCourse(); };
     var courseSearchInput = document.getElementById('course-search');
@@ -61360,6 +61484,7 @@ function openCourseSelector(cellId, grade, subject) {
 
     // Pre-fill custom inputs from existing selection
     var existing = cellSelections[cellId];
+    if (Array.isArray(existing)) { existing = (currentEditSubIndex >= 0 && currentEditSubIndex < existing.length) ? existing[currentEditSubIndex] : null; }
     if (existing) {
         document.getElementById('custom-chapter').value = existing.custom_chapter || '';
         document.getElementById('custom-teacher').value = existing.custom_teacher || '';
@@ -61525,15 +61650,14 @@ function updateModuleTeacherCourse() {
     // Version dropdown
     var versionField = document.getElementById('version-field');
     var versionSelect = document.getElementById('version-select');
-    var versionMap = {};
-    for (var i = 0; i < allCourses.length; i++) {
-        var v = allCourses[i].version || '';
-        if (v) versionMap[v] = (versionMap[v] || 0) + 1;
-    }
-    var versionNames = Object.keys(versionMap).sort();
-    var prevVersion = versionSelect.value;
-    if (versionNames.length > 0) {
-        versionField.style.display = 'block';
+    if (versionField && versionSelect) {
+        var versionMap = {};
+        for (var i = 0; i < allCourses.length; i++) {
+            var v = allCourses[i].version || '';
+            if (v) versionMap[v] = (versionMap[v] || 0) + 1;
+        }
+        var versionNames = Object.keys(versionMap).sort();
+        var prevVersion = versionSelect.value;
         var vfrag = document.createDocumentFragment();
         var allVOpt = document.createElement('option');
         allVOpt.value = '';
@@ -61548,43 +61672,10 @@ function updateModuleTeacherCourse() {
         versionSelect.innerHTML = '';
         versionSelect.appendChild(vfrag);
         if (versionNames.indexOf(prevVersion) !== -1) versionSelect.value = prevVersion;
-    } else {
-        versionField.style.display = 'none';
-        versionSelect.value = '';
-    }
-
-    // Version dropdown
-    var versionField = document.getElementById('version-field');
-    var versionSelect = document.getElementById('version-select');
-    var versionMap = {};
-    for (var i = 0; i < allCourses.length; i++) {
-        var v = allCourses[i].version || '';
-        if (v) versionMap[v] = (versionMap[v] || 0) + 1;
-    }
-    var versionNames = Object.keys(versionMap).sort();
-    var prevVersion = versionSelect.value;
-    if (versionNames.length > 0) {
         versionField.style.display = 'block';
-        var vfrag = document.createDocumentFragment();
-        var allVOpt = document.createElement('option');
-        allVOpt.value = '';
-        allVOpt.textContent = '全部';
-        vfrag.appendChild(allVOpt);
-        for (var i = 0; i < versionNames.length; i++) {
-            var opt = document.createElement('option');
-            opt.value = versionNames[i];
-            opt.textContent = versionNames[i] + ' (' + versionMap[versionNames[i]] + ')';
-            vfrag.appendChild(opt);
-        }
-        versionSelect.innerHTML = '';
-        versionSelect.appendChild(vfrag);
-        if (versionNames.indexOf(prevVersion) !== -1) versionSelect.value = prevVersion;
-    } else {
-        versionField.style.display = 'none';
-        versionSelect.value = '';
     }
 
-    // Filter courses by module for teacher list
+        // Filter courses by module for teacher list
     var selectedModule = moduleSelect.value;
     var coursesForTeacher = (hasModules && selectedModule)
         ? allCourses.filter(function(c) { return c.lesson === selectedModule; })
@@ -61943,15 +62034,26 @@ function _importMultipleFiles(files) {
 }
 
 function _autoImportExcelRows(fileName, rows) {
-    // Check for duplicate import
+    // Check for duplicate import (check class-type level and individual courses)
     var _all = window.IMPORTED_COURSE_OPTIONS || {};
-    for (var _ct in _all) {
-        if (_ct === '_source') continue;
-        if (_all[_ct]._source === fileName) {
-            console.log('[IMPORT] Duplicate file skipped:', fileName);
-            return;
+    var _isDup = false;
+    for (var _dct in _all) {
+        if (_dct === '_source') continue;
+        if (_all[_dct]._source === fileName) { _isDup = true; break; }
+        for (var _dg in _all[_dct]) {
+            if (_dg === '_source') continue;
+            for (var _ds in _all[_dct][_dg]) {
+                var _dc = _all[_dct][_dg][_ds] || [];
+                for (var _di = 0; _di < _dc.length; _di++) {
+                    if (_dc[_di]._source === fileName) { _isDup = true; break; }
+                }
+                if (_isDup) break;
+            }
+            if (_isDup) break;
         }
+        if (_isDup) break;
     }
+    if (_isDup) { console.log('[IMPORT] Duplicate file skipped:', fileName); return; }
     // Simplified auto-detect for batch import (uses same logic as _showExcelConfigDialog)
     var headerRow = null, dataStartRow = 1;
     var teacherKeywords = /老师|教师|主讲|讲师|授课/;
@@ -61995,13 +62097,31 @@ function _autoImportExcelRows(fileName, rows) {
     }
     // Try to extract class type
     var version = '';
+    // Detect version from Excel headers (scan first 5 rows)
+    var versionKeywords = /必修[12一二三]?|选修[12一二三]?|选择性必修[12一二三]?|[上下]册/;
+    var versionFromHeader = '';
+    for (var vi = 0; vi < Math.min(rows.length, 5); vi++) {
+        var vrow = rows[vi];
+        if (!vrow) continue;
+        for (var vci = 0; vci < vrow.length; vci++) {
+            var vcell = String(vrow[vci] || '').trim();
+            if (versionKeywords.test(vcell)) {
+                var vmatch = vcell.match(versionKeywords);
+                if (vmatch) { versionFromHeader = vmatch[0]; break; }
+            }
+        }
+        if (versionFromHeader) break;
+    }
+
     var ctMatch = nameLower.match(/(同步启航班|同步基础班|同步进阶班|同步高阶班|考点闯关班|专题精炼班|砍题班|数学青云班|初高衔接班|艺考课程|高职单招课|三陶习题课|物理突击班|数学专题课|小初衔接班|中考绝招班|考点习题课|习题课|同步启航|同步基础|同步进阶|高阶|考点闯关|实验班|普通班|冲刺班|强化班|提升班|基础班)/);
     if (ctMatch) {
         classType = ctMatch[1].endsWith('班') ? ctMatch[1] : ctMatch[1] + '班';
         var afterCt = nameLower.substring(ctMatch.index + ctMatch[0].length);
-        var versionMatch = afterCt.match(/^(选修\d*|必修\d*|选择性必修\d*|[上下]册)/);
+        var versionMatch = nameLower.match(/(选择性必修[第一二三册d]*|必修[第一二三册d]*|选修[第一二三册d]*|[上下]册)/);
         if (versionMatch) version = versionMatch[1];
     }
+    // Prefer header version over filename version
+    if (versionFromHeader && !version) version = versionFromHeader;
     
     var courses = [];
     for (var ri = dataStartRow; ri < rows.length; ri++) {
@@ -62092,7 +62212,7 @@ async function _saveImportedToSupabase() {
                             grade: g, subject: subj,
                             lesson: c.lesson || '',
                             chapter: c.chapter || '',
-                            content: c.content || '',
+                            content: c._source || '',
                             key_points: c.key_points || '',
                             teacher: c.teacher || '',
                             class_type: ct,
@@ -62122,11 +62242,24 @@ function showImportManager() {
         return;
     }
     
-    // Group by source
+    // Group by source (collect from individual courses)
     classTypes.forEach(function(ct) {
-        var src = all[ct]._source || '未知来源';
-        if (!sources[src]) sources[src] = [];
-        sources[src].push(ct);
+        var srcSet = {};
+        for (var g in all[ct]) {
+            if (g === '_source') continue;
+            for (var s in all[ct][g]) {
+                if (!Array.isArray(all[ct][g][s])) continue;
+                all[ct][g][s].forEach(function(c) {
+                    if (c._source) srcSet[c._source] = true;
+                });
+            }
+        }
+        var srcList = Object.keys(srcSet);
+        if (srcList.length === 0) srcList = [all[ct]._source || '未知来源'];
+        srcList.forEach(function(src) {
+            if (!sources[src]) sources[src] = [];
+            if (sources[src].indexOf(ct) === -1) sources[src].push(ct);
+        });
     });
     
     var sourceNames = Object.keys(sources);
@@ -62283,6 +62416,29 @@ function _importExcel(file) {
 
 var _importFileName = '';
 function _showExcelConfigDialog(fileName, rows) {
+    // Check for duplicate import
+    var _all = window.IMPORTED_COURSE_OPTIONS || {};
+    var _isDup = false;
+    for (var _dct in _all) {
+        if (_dct === '_source') continue;
+        if (_all[_dct]._source === fileName) { _isDup = true; break; }
+        for (var _dg in _all[_dct]) {
+            if (_dg === '_source') continue;
+            for (var _ds in _all[_dct][_dg]) {
+                var _dc = _all[_dct][_dg][_ds] || [];
+                for (var _di = 0; _di < _dc.length; _di++) {
+                    if (_dc[_di]._source === fileName) { _isDup = true; break; }
+                }
+                if (_isDup) break;
+            }
+            if (_isDup) break;
+        }
+        if (_isDup) break;
+    }
+    if (_isDup) {
+        alert('⚠️ 文件 "' + fileName + '" 已导入过，不能重复导入。');
+        return;
+    }
     _importFileName = fileName;
     // Smart header detection: scan first 5 rows for the best header row
     var headerRow = null, dataStartRow = 1, headerRowIdx = -1;
@@ -62349,6 +62505,22 @@ function _showExcelConfigDialog(fileName, rows) {
 
     // Auto-detect from filename
     var ctFromName = '', subjFromName = '', gradeFromName = (typeof currentGroupLevel !== 'undefined' && currentGroupLevel === '高中') ? '高一' : ((typeof currentGroupLevel !== 'undefined' && currentGroupLevel === '初中') ? '初一' : '通用');
+    // Detect version from Excel headers (scan first 5 rows)
+    var versionKeywords = /必修[12一二三]?|选修[12一二三]?|选择性必修[12一二三]?|[上下]册/;
+    var versionFromHeader = '';
+    for (var vi = 0; vi < Math.min(rows.length, 5); vi++) {
+        var vrow = rows[vi];
+        if (!vrow) continue;
+        for (var vci = 0; vci < vrow.length; vci++) {
+            var vcell = String(vrow[vci] || '').trim();
+            if (versionKeywords.test(vcell)) {
+                var vmatch = vcell.match(versionKeywords);
+                if (vmatch) { versionFromHeader = vmatch[0]; break; }
+            }
+        }
+        if (versionFromHeader) break;
+    }
+    // Use header version if found, otherwise use filename version
     var versionFromName = '';
     var fnBase = fileName.replace(/\.[^.]+$/, '');
     var ctPatterns = /(同步启航班|同步基础班|同步进阶班|同步高阶班|考点闯关班|专题精炼班|砍题班|数学青云班|初高衔接班|艺考课程|高职单招课|三陶习题课|物理突击班|数学专题课|小初衔接班|中考绝招班|考点习题课|习题课)/;
@@ -62356,9 +62528,11 @@ function _showExcelConfigDialog(fileName, rows) {
     if (ctMatch) {
         ctFromName = ctMatch[1];
         var afterCt = fnBase.substring(ctMatch.index + ctMatch[0].length);
-        var versionMatch = afterCt.match(/^(选修\d*|必修\d*|选择性必修\d*|[上下]册)/);
+        var versionMatch = fnBase.match(/(选择性必修[第一二三册d]*|必修[第一二三册d]*|选修[第一二三册d]*|[上下]册)/);
         if (versionMatch) versionFromName = versionMatch[1];
     }
+    // Prefer header version over filename version
+    if (versionFromHeader && !versionFromName) versionFromName = versionFromHeader;
     var subjMatch = fnBase.match(/(数学|语文|英语|物理|化学|生物|历史|地理|政治)/);
     if (subjMatch) subjFromName = subjMatch[1];
     var gradeMap = {'高一':'高一','高二':'高二','高三':'高三','初一':'初一','初二':'初二','初三':'初三','高中':'高一'};
@@ -62635,14 +62809,14 @@ function clearCourseSelection() {
     if (!currentEditCellId) return;
     if (!currentStudentId) { showToast('❌ 请先选择学生'); return; }
     
-    if (!confirm('确定清空该单元格的内容？')) return;
+    if (!confirm('确定清空该单元格的所有课程？')) return;
     
     // 删除内存中的数据
     delete cellSelections[currentEditCellId];
     
     // 清空页面显示
     var cd = document.getElementById('content-' + currentEditCellId);
-    if (cd) cd.innerHTML = '<div class="subject-name"></div>';
+    if (cd) cd.innerHTML = "<div class=\"cell-add-btn\" onclick=\"event.stopPropagation();openCourseSelector(" + String.fromCharCode(39) + currentEditCellId + String.fromCharCode(39) + ",null,null,-1)\">\uff0b\u6dfb\u52a0</div>";
     
     // 重置单元格背景色为原始颜色
     restoreCellColor(currentEditCellId);
@@ -62694,8 +62868,9 @@ async function saveCourseSelection() {
                 version: santaoData.version || null
             };
             console.log('[SAVE-UI] santao selection:', JSON.stringify({sid: selection.student_id, cid: selection.cell_id, ch: selection.custom_chapter}));
-            cellSelections[currentEditCellId] = selection;
-            updateCellDisplayFromSelection(currentEditCellId, selection);
+            if(!Array.isArray(cellSelections[currentEditCellId]))cellSelections[currentEditCellId]=cellSelections[currentEditCellId]?[cellSelections[currentEditCellId]]:[];
+            if(currentEditSubIndex>=0&&currentEditSubIndex<cellSelections[currentEditCellId].length){selection.sub_index=currentEditSubIndex;cellSelections[currentEditCellId][currentEditSubIndex]=selection;}else{selection.sub_index=cellSelections[currentEditCellId].length;cellSelections[currentEditCellId].push(selection);}
+            updateCellDisplayFromSelection(currentEditCellId);
             await saveSelectionToCloud(selection);
             closeCourseSelector();
             var pid = 'panel-' + currentPhase + '-' + currentGrade + '-' + currentCombo;
@@ -62721,8 +62896,9 @@ async function saveCourseSelection() {
         version: null
     };
     console.log('[SAVE-UI] custom selection:', JSON.stringify({sid: selection.student_id, cid: selection.cell_id, ch: selection.custom_chapter}));
-    cellSelections[currentEditCellId] = selection;
-    updateCellDisplayFromSelection(currentEditCellId, selection);
+    if(!Array.isArray(cellSelections[currentEditCellId]))cellSelections[currentEditCellId]=cellSelections[currentEditCellId]?[cellSelections[currentEditCellId]]:[];
+    if(currentEditSubIndex>=0&&currentEditSubIndex<cellSelections[currentEditCellId].length){selection.sub_index=currentEditSubIndex;cellSelections[currentEditCellId][currentEditSubIndex]=selection;}else{selection.sub_index=cellSelections[currentEditCellId].length;cellSelections[currentEditCellId].push(selection);}
+    updateCellDisplayFromSelection(currentEditCellId);
     await saveSelectionToCloud(selection);
     closeCourseSelector();
 
@@ -62743,6 +62919,7 @@ async function saveSelectionToCloud(selection) {
             .select('id')
             .eq('student_id', selection.student_id)
             .eq('cell_id', selection.cell_id)
+            .eq('sub_index', selection.sub_index || 0)
             .maybeSingle();
 
         if (queryErr) {
@@ -62757,13 +62934,16 @@ async function saveSelectionToCloud(selection) {
             custom_chapter: selection.custom_chapter,
             custom_teacher: selection.custom_teacher,
             custom_class_type: selection.custom_class_type,
-            version: selection.version || null
+            version: selection.version || null,
+            sub_index: selection.sub_index || 0,
+            is_done: selection.is_done || false
         };
         var basicData = {
             option_id: selection.option_id,
             custom_chapter: selection.custom_chapter,
             custom_teacher: selection.custom_teacher,
-            custom_class_type: selection.custom_class_type
+            custom_class_type: selection.custom_class_type,
+            sub_index: selection.sub_index || 0
         };
 
         if (existing) {
@@ -63014,7 +63194,7 @@ function createStudentSelector() {
     var selector = document.createElement('div');
     selector.id = 'student-selector';
     selector.style.cssText = 'position:fixed;top:10px;right:10px;z-index:1001;background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;align-items:center;gap:8px;font-size:13px;';
-    selector.innerHTML = '<span>👤</span><input id="student-search" type="text" placeholder="搜索..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:80px;"><select id="student-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;max-width:180px;"></select><button id="btn-add-student" style="padding:4px 8px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">+</button><button id="btn-del-student" style="padding:4px 8px;background:#c0392b;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">-</button><button id="btn-view-logs" style="padding:4px 8px;background:#666;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="查看日志">📋</button><button id="btn-switch-group" style="padding:4px 8px;background:#8e44ad;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="切换分组">🔄</button>';
+    selector.innerHTML = '<span>👤</span><input id="student-search" type="text" placeholder="搜索..." style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:80px;"><select id="student-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;max-width:180px;"></select><button id="btn-add-student" style="padding:4px 8px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">+</button><button id="btn-del-student" style="padding:4px 8px;background:#c0392b;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">-</button><button id="btn-edit-student" style="padding:4px 8px;background:#e67e22;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="编辑学生信息">✏</button><button id="btn-view-logs" style="padding:4px 8px;background:#666;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="查看日志">📋</button><button id="btn-switch-group" style="padding:4px 8px;background:#8e44ad;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;" title="切换分组">🔄</button>';
     document.body.appendChild(selector);
     
     selector.querySelector('#student-select').addEventListener('change', function(e) {
@@ -63025,6 +63205,10 @@ function createStudentSelector() {
     });
     selector.querySelector('#btn-del-student').addEventListener('click', function() {
         deleteStudent();
+    });
+    var editBtn = selector.querySelector('#btn-edit-student');
+    if (editBtn) editBtn.addEventListener('click', function() {
+        editStudent();
     });
     selector.querySelector('#btn-view-logs').addEventListener('click', function() {
         showLogViewer();
@@ -63136,9 +63320,12 @@ async function switchStudent(studentId) {
     
     if (selections) {
         selections.forEach(function(s) {
-            cellSelections[s.cell_id] = s;
-            updateCellDisplayFromSelection(s.cell_id, s);
+            if (!cellSelections[s.cell_id]) cellSelections[s.cell_id] = [];
+            if (!Array.isArray(cellSelections[s.cell_id])) cellSelections[s.cell_id] = [cellSelections[s.cell_id]];
+            var subIdx = s.sub_index || 0;
+            cellSelections[s.cell_id][subIdx] = s;
         });
+        for (var _cid in cellSelections) { cellSelections[_cid] = cellSelections[_cid].filter(Boolean); updateCellDisplayFromSelection(_cid); }
     }
     
     var { data: marks } = await supabaseClient
@@ -63193,6 +63380,62 @@ async function deleteStudent() {
         console.error('删除学生失败:', e);
         alert('删除学生失败');
     }
+}
+
+async function editStudent() {
+    if (!currentStudentId) { alert('请先选择要编辑的学生'); return; }
+    var student = students[currentStudentId];
+    if (!student) { alert('找不到学生信息'); return; }
+    var existing = document.getElementById('edit-student-modal');
+    if (existing) existing.remove();
+    var modal = document.createElement('div');
+    modal.id = 'edit-student-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;display:flex;align-items:center;justify-content:center;';
+    var juniorGrades = ['初一','初二','初三'];
+    var seniorGrades = ['高一','高二','高三'];
+    var allGrades = currentGroupLevel === '初中' ? juniorGrades : (currentGroupLevel === '高中' ? seniorGrades : juniorGrades.concat(seniorGrades));
+    var gradeOptions = allGrades.map(function(g) { return '<option value="' + g + '"' + (g === student.grade ? ' selected' : '') + '>' + g + '</option>'; }).join('');
+    var isJunior = juniorGrades.indexOf(student.grade) !== -1;
+    var combos = ['物化生','物化地','物化政','政史地','政史生','默认'];
+    var comboOptions = combos.map(function(c) { return '<option value="' + c + '"' + (c === student.combo ? ' selected' : '') + '>' + c + '</option>'; }).join('');
+    modal.innerHTML = '<div style="background:#fff;padding:24px;border-radius:12px;max-width:400px;width:90%">' +
+        '<h3 style="margin:0 0 16px">编辑学生信息</h3>' +
+        '<div style="margin-bottom:12px"><label style="font-weight:600;font-size:13px">姓名:</label><br>' +
+        '<input id="edit-student-name" type="text" value="' + (student.name || '').replace(/"/g, '&quot;') + '" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box"></div>' +
+        '<div style="margin-bottom:12px"><label style="font-weight:600;font-size:13px">年级:</label><br>' +
+        '<select id="edit-student-grade" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px">' + gradeOptions + '</select></div>' +
+        '<div id="edit-combo-field" style="margin-bottom:16px;' + (isJunior ? 'display:none' : '') + '"><label style="font-weight:600;font-size:13px">组合:</label><br>' +
+        '<select id="edit-student-combo" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px">' + comboOptions + '</select></div>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+        '<button id="btn-cancel-edit" style="padding:8px 16px;border:1px solid #ccc;border-radius:4px;cursor:pointer;background:#fff">取消</button>' +
+        '<button id="btn-save-edit" style="padding:8px 16px;background:#1a5fb4;color:#fff;border:none;border-radius:4px;cursor:pointer;font-weight:600">保存</button>' +
+        '</div></div>';
+    document.body.appendChild(modal);
+    modal.querySelector('#btn-cancel-edit').onclick = function() { modal.remove(); };
+    modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+    var gradeSelect = modal.querySelector('#edit-student-grade');
+    gradeSelect.onchange = function() {
+        var isJr = juniorGrades.indexOf(gradeSelect.value) !== -1;
+        document.getElementById('edit-combo-field').style.display = isJr ? 'none' : 'block';
+    };
+    modal.querySelector('#btn-save-edit').onclick = async function() {
+        var newName = document.getElementById('edit-student-name').value.trim();
+        var newGrade = gradeSelect.value;
+        var newCombo = isJunior ? '默认' : (document.getElementById('edit-student-combo').value || '默认');
+        if (!newName) { alert('请输入姓名'); return; }
+        try {
+            var { error } = await supabaseClient.from('students').update({ name: newName, grade: newGrade, combo: newCombo }).eq('id', currentStudentId);
+            if (error) { alert('保存失败: ' + error.message); return; }
+            student.name = newName;
+            student.grade = newGrade;
+            student.combo = newCombo;
+            currentStudentName = newName;
+            updateStudentSelector();
+            modal.remove();
+            showToast('✅ 学生信息已更新');
+            logOperation(currentGroupId, '编辑学生', newName);
+        } catch(e) { alert('保存失败: ' + e.message); }
+    };
 }
 
 async function addNewStudent() {
@@ -63440,7 +63683,7 @@ function openEditModal(cellId, btn) {
     }
     var parts = cellId.split('-');
     var grade = parts[1];
-    openCourseSelector(cellId, grade, subject);
+    openCourseSelector(cellId, grade, subject, 0);
 }
 function restoreData() { document.querySelectorAll('.tab-panel.active').forEach(function(p) { updateProgress(p.id); }); }
 function updateLearningNotes() { /* 学习笔记 */ }
@@ -63486,32 +63729,17 @@ function updateProgress(id) {
     var total = 0;
     var completed = 0;
     
-    cells.forEach(function(cell) {
-        // 获取单元格内容
-        var contentDiv = cell.querySelector('.cell-content');
-        var subjectEl = contentDiv ? contentDiv.querySelector('.subject-name') : null;
-        var chapterEls = contentDiv ? contentDiv.querySelectorAll('.chapter-name') : [];
-        
-        var subject = subjectEl ? subjectEl.textContent.trim() : '';
-        var hasContent = false;
-        
-        // 检查是否有章节内容（排除只有空 subject-name 的情况）
-        chapterEls.forEach(function(ch) {
-            if (ch.textContent.trim()) hasContent = true;
-        });
-        
-        // 排除公休、休息、课间休息等
-        var skipWords = ['公休', '休息', '午休', '课间休息', '午饭', '自主安排'];
-        var isSkip = skipWords.some(function(w) {
-            return subject.indexOf(w) !== -1;
-        });
-        
-        // 只统计有实际课程内容的单元格
-        if (hasContent && !isSkip) {
-            total++;
-            if (cell.classList.contains('completed')) {
-                completed++;
-            }
+        cells.forEach(function(cell) {
+        var cid = cell.id.replace("cell-", "");
+        var arr = cellSelections[cid] || [];
+        if (!Array.isArray(arr)) arr = [arr];
+        if (arr.length === 0) return;
+        var subj0 = arr[0].custom_subject || "";
+        var sw = ["\u516c\u4f11","\u4f11\u606f","\u5348\u4f11","\u8bfe\u95f4\u4f11\u606f","\u5348\u996d","\u81ea\u4e3b\u5b89\u6392"];
+        if (sw.some(function(w) { return subj0.indexOf(w) !== -1; })) return;
+        total += arr.length;
+        for (var si = 0; si < arr.length; si++) {
+            if (arr[si].is_done) completed++;
         }
     });
     
