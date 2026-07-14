@@ -61346,6 +61346,8 @@ function openCourseSelector(cellId, grade, subject) {
     subjectSelect.onchange = function() { refreshCourseFilterDropdowns(); };
     var teacherSelect = document.getElementById('teacher-select');
     teacherSelect.onchange = function() { refreshCourseList(); };
+    var versionSelect = document.getElementById('version-select');
+    versionSelect.onchange = function() { refreshCourseList(); };
     var moduleSelect = document.getElementById('module-select');
     moduleSelect.onchange = function() { updateModuleTeacherCourse(); };
     var courseSearchInput = document.getElementById('course-search');
@@ -61520,6 +61522,68 @@ function updateModuleTeacherCourse() {
         moduleSelect.value = '';
     }
 
+    // Version dropdown
+    var versionField = document.getElementById('version-field');
+    var versionSelect = document.getElementById('version-select');
+    var versionMap = {};
+    for (var i = 0; i < allCourses.length; i++) {
+        var v = allCourses[i].version || '';
+        if (v) versionMap[v] = (versionMap[v] || 0) + 1;
+    }
+    var versionNames = Object.keys(versionMap).sort();
+    var prevVersion = versionSelect.value;
+    if (versionNames.length > 0) {
+        versionField.style.display = 'block';
+        var vfrag = document.createDocumentFragment();
+        var allVOpt = document.createElement('option');
+        allVOpt.value = '';
+        allVOpt.textContent = '全部';
+        vfrag.appendChild(allVOpt);
+        for (var i = 0; i < versionNames.length; i++) {
+            var opt = document.createElement('option');
+            opt.value = versionNames[i];
+            opt.textContent = versionNames[i] + ' (' + versionMap[versionNames[i]] + ')';
+            vfrag.appendChild(opt);
+        }
+        versionSelect.innerHTML = '';
+        versionSelect.appendChild(vfrag);
+        if (versionNames.indexOf(prevVersion) !== -1) versionSelect.value = prevVersion;
+    } else {
+        versionField.style.display = 'none';
+        versionSelect.value = '';
+    }
+
+    // Version dropdown
+    var versionField = document.getElementById('version-field');
+    var versionSelect = document.getElementById('version-select');
+    var versionMap = {};
+    for (var i = 0; i < allCourses.length; i++) {
+        var v = allCourses[i].version || '';
+        if (v) versionMap[v] = (versionMap[v] || 0) + 1;
+    }
+    var versionNames = Object.keys(versionMap).sort();
+    var prevVersion = versionSelect.value;
+    if (versionNames.length > 0) {
+        versionField.style.display = 'block';
+        var vfrag = document.createDocumentFragment();
+        var allVOpt = document.createElement('option');
+        allVOpt.value = '';
+        allVOpt.textContent = '全部';
+        vfrag.appendChild(allVOpt);
+        for (var i = 0; i < versionNames.length; i++) {
+            var opt = document.createElement('option');
+            opt.value = versionNames[i];
+            opt.textContent = versionNames[i] + ' (' + versionMap[versionNames[i]] + ')';
+            vfrag.appendChild(opt);
+        }
+        versionSelect.innerHTML = '';
+        versionSelect.appendChild(vfrag);
+        if (versionNames.indexOf(prevVersion) !== -1) versionSelect.value = prevVersion;
+    } else {
+        versionField.style.display = 'none';
+        versionSelect.value = '';
+    }
+
     // Filter courses by module for teacher list
     var selectedModule = moduleSelect.value;
     var coursesForTeacher = (hasModules && selectedModule)
@@ -61565,6 +61629,28 @@ function refreshCourseList() {
         var filtered = [];
         for (var i = 0; i < allCourses.length; i++) {
             if (allCourses[i].lesson === selectedModule) filtered.push(allCourses[i]);
+        }
+        allCourses = filtered;
+    }
+
+    // Filter by version
+    var versionSel = document.getElementById('version-select');
+    var selectedVersion = versionSel ? versionSel.value : '';
+    if (selectedVersion) {
+        var filtered = [];
+        for (var i = 0; i < allCourses.length; i++) {
+            if (allCourses[i].version === selectedVersion) filtered.push(allCourses[i]);
+        }
+        allCourses = filtered;
+    }
+
+    // Filter by version
+    var versionSel = document.getElementById('version-select');
+    var selectedVersion = versionSel ? versionSel.value : '';
+    if (selectedVersion) {
+        var filtered = [];
+        for (var i = 0; i < allCourses.length; i++) {
+            if (allCourses[i].version === selectedVersion) filtered.push(allCourses[i]);
         }
         allCourses = filtered;
     }
@@ -62465,7 +62551,7 @@ function createCourseSelectorModal() {
     modal.innerHTML = '<div style="background:#fff;padding:24px;border-radius:12px;max-width:520px;width:92%;max-height:85vh;overflow-y:auto;">' +
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px"><h3 style="margin:0;line-height:36px">选择课程</h3><div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><div style="display:flex;gap:4px;align-items:center"><button id="btn-tab-imported" type="button" style="padding:5px 12px;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;background:#1a5fb4">📁 导入数据</button><button id="btn-tab-santao" type="button" style="padding:5px 12px;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;background:#aaa">🌐 抓取数据</button><button id="btn-custom" type="button" style="padding:5px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">✏️ 自定义</button></div><div id="import-actions-row" style="display:flex;gap:4px"><button id="btn-import-file" type="button" style="padding:5px 12px;background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">📁 导入文件</button><button id="btn-clear-import" type="button" style="padding:5px 12px;background:#e67e22;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">🗂️ 管理导入</button></div></div></div>' +
         '<div id="dropdown-section">' +
-        '<div style="margin-bottom:10px"><label style="font-weight:600">班型:</label><br><select id="classtype-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
+        '<div style="display:flex;gap:8px;margin-bottom:10px"><div style="flex:1"><label style="font-weight:600">班型:</label><br><select id="classtype-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div><div id="version-field" style="flex:0 0 130px"><label style="font-weight:600">版本:</label><br><select id="version-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"><option value="">全部</option></select></div></div>' +
         '<div id="grade-field" style="margin-bottom:10px"><label style="font-weight:600">年级:</label><br><select id="grade-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '<div style="margin-bottom:10px"><label style="font-weight:600">科目:</label><br><select id="subject-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"></select></div>' +
         '<div id="module-field" style="margin-bottom:10px;display:none"><label style="font-weight:600">教材模块:</label><br><select id="module-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"><option value="">-- 全部模块 --</option></select></div><div id="teacher-field" style="margin-bottom:10px"><label style="font-weight:600">老师:</label><br><select id="teacher-select" style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px"><option value="">-- 全部老师 --</option></select></div>' +
