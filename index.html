@@ -68,6 +68,12 @@ body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; backgro
 .tip-card[draggable="true"] { cursor: grab; }
 .tip-card.dragging { opacity: 0.4; }
 
+/* 列头拖拽排序样式 */
+.schedule-table th[draggable="true"] { cursor: grab; user-select: none; }
+.schedule-table th[draggable="true"]:active { cursor: grabbing; }
+.schedule-table th.col-dragging { opacity: 0.4; }
+.schedule-table th.col-drag-over { border-left: 3px solid #f39c12 !important; }
+
 /* 天数选择对话框 */
 .day-type-dialog { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:3000; display:flex; align-items:center; justify-content:center; }
 .day-type-dialog .dlg-box { background:#fff; padding:24px; border-radius:12px; max-width:360px; width:90%; }
@@ -60664,6 +60670,7 @@ async function doLogin() {
             addDayManagerToolbar();
     initDateHeaders();
     initDragDrop(document);
+    document.querySelectorAll('.tab-panel').forEach(function(p) { initColumnDrag(p); });
             
             document.querySelectorAll('.learning-notes-container').forEach(function(container) {
                 var content = container.querySelector('.learning-notes-content');
@@ -61445,6 +61452,7 @@ async function loadColumnConfig() {
         
             // 初始化新列的拖拽
             initDragDrop(table);
+            initColumnDrag(panel);
         
         // 清理数据库中残留的公休记录
         (async function() {
@@ -63932,6 +63940,7 @@ function confirmAddDay(dayType) {
     if (dayType !== 'rest') {
         initDragDrop(table);
     }
+    initColumnDrag(panel);
 
     showToast(dayType === 'rest' ? '✅ 已添加 D' + newDay + '（公休）' : '✅ 已添加 D' + newDay);
     
@@ -64204,6 +64213,246 @@ function handleCellDrop(targetCell) {
     }
 }
 
+// ===== 列头拖拽排序 =====
+function initColumnDrag(panel) {
+    var table = panel.querySelector('.schedule-table');
+    if (!table) return;
+    var theadRow = table.querySelector('thead tr');
+    if (!theadRow) return;
+    var ths = theadRow.querySelectorAll('th');
+    for (var i = 1; i < ths.length; i++) { // skip first "时间" column
+        (function(th, colIdx) {
+            if (th._colDragInit) return;
+            th._colDragInit = true;
+            th.setAttribute('draggable', 'true');
+            th.addEventListener('dragstart', function(e) {
+                // 如果拖拽的是课程单元格，不触发列拖拽
+                if (e.target !== th) return;
+                th._colDragIdx = colIdx;
+                th.classList.add('col-dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', 'col-' + colIdx);
+            });
+            th.addEventListener('dragend', function() {
+                th.classList.remove('col-dragging');
+                theadRow.querySelectorAll('.col-drag-over').forEach(function(el) { el.classList.remove('col-drag-over'); });
+            });
+            th.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (th !== document.querySelector('.col-dragging')) {
+                    th.classList.add('col-drag-over');
+                }
+            });
+            th.addEventListener('dragleave', function() {
+                th.classList.remove('col-drag-over');
+            });
+            th.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                th.classList.remove('col-drag-over');
+                var fromIdx = null;
+                var draggingTh = theadRow.querySelector('.col-dragging');
+                if (draggingTh) fromIdx = draggingTh._colDragIdx;
+                if (fromIdx != null && fromIdx !== colIdx) {
+                    reorderColumns(panel, fromIdx, colIdx);
+                }
+            });
+        })(ths[i], i);
+    }
+}
+
+function reorderColumns(panel, fromIdx, toIdx) {
+    var table = panel.querySelector('.schedule-table');
+    if (!table) return;
+    var theadRow = table.querySelector('thead tr');
+    var ths = Array.from(theadRow.children);
+    var panelKey = panel.id.replace('panel-', '');
+    var dayCount = ths.length - 1;
+
+    // 1. Build position mapping: old index -> new index
+    var order = [];
+    for (var i = 1; i <= dayCount; i++) order.push(i);
+    var moved = order.splice(fromIdx - 1, 1)[0];
+    order.splice(toIdx > fromIdx ? toIdx - 2 : toIdx - 1, 0, moved);
+    var oldToNew = {};
+    for (var i = 0; i < order.length; i++) {
+        oldToNew[order[i]] = i + 1;
+    }
+
+    // 2. Physically reorder th elements
+    var thElements = Array.from(theadRow.children);
+    var timeTh = thElements[0];
+    var dayThs = thElements.slice(1);
+    var reorderedThs = [];
+    for (var i = 0; i < dayThs.length; i++) {
+        var oldIdx = i + 1;
+        var newIdx = oldToNew[oldIdx];
+        reorderedThs[newIdx - 1] = dayThs[i];
+    }
+    for (var i = 0; i < reorderedThs.length; i++) {
+        theadRow.appendChild(reorderedThs[i]);
+    }
+
+    // 3. Update th labels, clear drag init flags
+    var updatedThs = theadRow.querySelectorAll('th');
+    for (var i = 1; i < updatedThs.length; i++) {
+        var th = updatedThs[i];
+        th._colDragInit = false; // will re-init later
+        var dayLabel = th.querySelector('.day-label');
+        if (dayLabel) dayLabel.textContent = 'D' + i;
+    }
+
+    // 4. Reorder td elements in each tbody row
+    var tbodyRows = table.querySelectorAll('tbody tr');
+    for (var r = 0; r < tbodyRows.length; r++) {
+        var row = tbodyRows[r];
+        var tds = Array.from(row.children);
+        var timeTd = tds[0];
+        var dayTds = tds.slice(1);
+        var reorderedTds = [];
+        for (var i = 0; i < dayTds.length; i++) {
+            var oldIdx = i + 1;
+            var newIdx = oldToNew[oldIdx];
+            reorderedTds[newIdx - 1] = dayTds[i];
+        }
+        for (var i = 0; i < reorderedTds.length; i++) {
+            row.appendChild(reorderedTds[i]);
+        }
+    }
+
+    // 5. Update cell IDs, onclick, and cellSelections
+    var newCellSelections = {};
+    var newOriginalCellColors = {};
+    var prefix = panelKey + '-';
+
+    // Build reverse map: for each new position, what was the old position
+    var newToOld = {};
+    for (var oldI in oldToNew) newToOld[oldToNew[oldI]] = parseInt(oldI);
+
+    for (var newIdx = 1; newIdx <= dayCount; newIdx++) {
+        var oldIdx = newToOld[newIdx];
+        // Rename cell IDs for all rows (slots)
+        var tbodyRows2 = table.querySelectorAll('tbody tr');
+        for (var r = 0; r < tbodyRows2.length; r++) {
+            var oldCellId = panelKey + '-D' + oldIdx + '-S' + r;
+            var newCellId = panelKey + '-D' + newIdx + '-S' + r;
+            var cell = document.getElementById('cell-' + oldCellId);
+            if (cell) {
+                cell.id = 'cell-' + newCellId;
+                var content = document.getElementById('content-' + oldCellId);
+                if (content) content.id = 'content-' + newCellId;
+                // Update onclick to use new cellId
+                cell.setAttribute('onclick', "showDetail('" + newCellId + "')");
+                // Update check-btn and edit-btn onclick handlers
+                var btns = cell.querySelectorAll('.check-btn, .edit-btn');
+                btns.forEach(function(btn) {
+                    var oc = btn.getAttribute('onclick');
+                    if (oc) {
+                        btn.setAttribute('onclick', oc.replace(oldCellId, newCellId));
+                    }
+                });
+            }
+        }
+        // Move cellSelections
+        var oldKey = panelKey + '-D' + oldIdx + '-S';
+        var newKey = panelKey + '-D' + newIdx + '-S';
+        for (var key in cellSelections) {
+            if (key.indexOf(oldKey) === 0) {
+                var suffix = key.substring(oldKey.length);
+                var arr = cellSelections[key];
+                if (Array.isArray(arr)) {
+                    for (var a = 0; a < arr.length; a++) arr[a].cell_id = newKey + suffix;
+                }
+                newCellSelections[newKey + suffix] = arr;
+            }
+        }
+        // Move originalCellColors
+        for (var okey in originalCellColors) {
+            if (okey.indexOf(oldKey) === 0) {
+                var suffix = okey.substring(oldKey.length);
+                newOriginalCellColors[newKey + suffix] = originalCellColors[okey];
+            }
+        }
+    }
+
+    // Apply updated maps
+    for (var key in newCellSelections) cellSelections[key] = newCellSelections[key];
+    // Clean old keys that no longer exist
+    for (var key in cellSelections) {
+        if (key.indexOf(prefix) === 0 && !newCellSelections[key]) delete cellSelections[key];
+    }
+    for (var key in newOriginalCellColors) originalCellColors[key] = newOriginalCellColors[key];
+    for (var key in originalCellColors) {
+        if (key.indexOf(prefix) === 0 && !newOriginalCellColors[key]) delete originalCellColors[key];
+    }
+
+    // 6. Re-init drag for column headers
+    initColumnDrag(panel);
+    initDragDrop(table);
+
+    // 7. Update progress
+    updateProgress(panel.id);
+
+    // 8. Save to cloud
+    syncColumnConfigToCloud(panelKey);
+
+    showToast('✅ 列顺序已调整 (D' + fromIdx + ' → D' + toIdx + ')');
+}
+
+function syncColumnConfigToCloud(panelKey) {
+    (async function() {
+        try {
+            var panel = document.getElementById('panel-' + panelKey);
+            if (!panel) return;
+            var table = panel.querySelector('.schedule-table');
+            if (!table) return;
+            var theadRow = table.querySelector('thead tr');
+            var ths = theadRow.querySelectorAll('th');
+            var dayCount = ths.length - 1;
+
+            // Upsert each column config
+            var configs = [];
+            for (var i = 1; i <= dayCount; i++) {
+                var th = ths[i];
+                var dateInput = th.querySelector('.date-input input');
+                var dateVal = dateInput ? dateInput.value : '';
+                var dayType = th.classList.contains('rest-day-th') ? 'rest' : 'work';
+                configs.push({
+                    user_id: 'zhuomei_global',
+                    panel_key: panelKey,
+                    day_index: i,
+                    day_type: dayType,
+                    day_date: dateVal || ''
+                });
+            }
+            if (configs.length > 0) {
+                await supabaseClient.from('schedule_column_config')
+                    .upsert(configs, { onConflict: 'user_id,panel_key,day_index' });
+            }
+            // Delete any extra day configs beyond current count
+            var { data: existing } = await supabaseClient.from('schedule_column_config')
+                .select('day_index')
+                .eq('user_id', 'zhuomei_global')
+                .eq('panel_key', panelKey);
+            if (existing) {
+                for (var j = 0; j < existing.length; j++) {
+                    if (existing[j].day_index > dayCount) {
+                        await supabaseClient.from('schedule_column_config')
+                            .delete()
+                            .eq('user_id', 'zhuomei_global')
+                            .eq('panel_key', panelKey)
+                            .eq('day_index', existing[j].day_index);
+                    }
+                }
+            }
+            console.log('[COL-SYNC] saved', configs.length, 'columns for', panelKey);
+        } catch (e) {
+            console.error('[COL-SYNC] error:', e.message || e);
+        }
+    })();
+}
+
 // 保存某单元格所有子课程到云端（用于删除/移动后清理）
 function saveAllSubCoursesToCloud(cellId) {
     var arr = cellSelections[cellId] || [];
@@ -64229,7 +64478,7 @@ function addDayManagerToolbar() {
         toolbar.style.cssText = 'display:flex;gap:8px;padding:8px 0;margin-bottom:8px;align-items:center;';
         toolbar.innerHTML = '<span style="font-size:13px;color:#666;">天数管理:</span>' +
             '<button onclick="addDayManager()" style="padding:4px 12px;background:#27ae60;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">+ 增加一天</button>' +
-            '<span style="font-size:11px;color:#999;">（点击列头×删除该列 | 拖拽课程可互换位置）</span>';
+            '<span style="font-size:11px;color:#999;">（拖拽列头可调整顺序 | 点击列头×删除该列 | 拖拽课程可互换位置）</span>';
         
         table.parentElement.insertBefore(toolbar, table);
     });
