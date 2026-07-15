@@ -61533,7 +61533,14 @@ var subjectColors = {
         arr[idx].is_done = !arr[idx].is_done;
         (async function() { try { await saveSelectionToCloud(arr[idx]); } catch(e) {} })();
         var cell = document.getElementById("cell-" + cid);
-        if (cell) _showTip(cell);
+        if (cell) {
+            // 同步 .completed class 和 check-btn 状态
+            var allDone = arr.every(function(s) { return s.is_done; });
+            if (allDone) cell.classList.add("completed"); else cell.classList.remove("completed");
+            var btn = cell.querySelector('.check-btn');
+            if (btn) { if (allDone) btn.classList.add('checked'); else btn.classList.remove('checked'); }
+            _showTip(cell);
+        }
         updateProgress("panel-" + currentPhase + "-" + currentGrade + "-" + currentCombo);
     };
     window._tipEdit = function(cid, idx) {
@@ -64238,13 +64245,18 @@ function addDayManagerToolbar() {
     });
 }
 
-function toggleDone(cellId, btn) { 
+function toggleDone(cellId, btn) {
     if (!currentStudentId) { showToast('❌ 请先选择学生'); return; }
     var cell = document.getElementById('cell-' + cellId);
     if (!cell) return;
     var isDone = !btn.classList.contains('checked');
     if (isDone) btn.classList.add('checked'); else btn.classList.remove('checked');
     if (isDone) cell.classList.add('completed'); else cell.classList.remove('completed');
+    // 同步 cellSelections 的 is_done，保持数据一致
+    var arr = cellSelections[cellId];
+    if (Array.isArray(arr)) {
+        for (var i = 0; i < arr.length; i++) arr[i].is_done = isDone;
+    }
     var pid = 'panel-' + currentPhase + '-' + currentGrade + '-' + currentCombo;
     updateProgress(pid);
     
@@ -64309,23 +64321,23 @@ function updateProgress(id) {
     var panel = document.getElementById(id);
     if (!panel) return;
     
-    // 获取该 panel 下所有单元格
     var cells = panel.querySelectorAll('.subject-cell');
     var total = 0;
     var completed = 0;
     
-        cells.forEach(function(cell) {
+    cells.forEach(function(cell) {
+        // 跳过公休格
+        if (cell.classList.contains('rest-day-cell')) return;
         var cid = cell.id.replace("cell-", "");
         var arr = cellSelections[cid] || [];
         if (!Array.isArray(arr)) arr = [arr];
         if (arr.length === 0) return;
         var subj0 = arr[0].custom_subject || "";
-        var sw = ["\u516c\u4f11","\u4f11\u606f","\u5348\u4f11","\u8bfe\u95f4\u4f11\u606f","\u5348\u996d","\u81ea\u4e3b\u5b89\u6392"];
+        var sw = ["公休","休息","午休","课间休息","午饭","自主安排"];
         if (sw.some(function(w) { return subj0.indexOf(w) !== -1; })) return;
-        total += arr.length;
-        for (var si = 0; si < arr.length; si++) {
-            if (arr[si].is_done) completed++;
-        }
+        total++;
+        // 使用 .completed class 判断（toggleDone 和 _tipToggleDone 两条路径都会设置此 class）
+        if (cell.classList.contains('completed')) completed++;
     });
     
     var pct = total > 0 ? Math.round(completed / total * 100) : 0;
